@@ -1,0 +1,130 @@
+- better errors when creating new windows/sessions (how?)
+- implicitly add exec to the commands for new windows (switch to disable it)?
+- it would be nice to have multichar commands eg C-b K K
+- commands:
+ 	extend list-clients to list clients attached to a session (-a for all?)
+	bring back detach-session to detach all clients on a session?
+- allow fnmatch for -c, so that you can, eg, detach all clients
+- garbage collect window history (100 lines at a time?) if it hasn't been used
+  in $x time
+- lift SHRT_MAX limits for history?
+- flags to centre screen in window
+- activity/bell should be per-window not per-link? what if it is cur win in
+  session not being watched?
+- next prev word etc in command prompt
+- use a better termcap internally instead of screen, perhaps xterm
+- should be able to move to a hidden pane and it would be moved into view. pane
+  number in status line/top-right would be cool for this
+- support other mouse modes (highlight etc) and use it in copy mode
+- set-remain-on-exit is a bit of a hack, some way to do it generically?
+- clear window title on exit
+- would be nice to be able to use "--" to mark start of command w/ neww etc
+  to avoid quoting
+- make command sequences more usable: don't require space after ;, handle
+  errors better
+- attach should have a flag to create session if it doesn't exist
+- choice and more mode would be better per client than per window?
+- hooks to which commands may be attached, for example: tmux add-hook
+  "new-session" if-shell "[ -e $HOME/.tmux-session.conf ]" source-file
+  $HOME/.tmux-session.conf
+- get it passing all the vttest tests that don't require resizing the terminal
+- way to set socket path from config file
+- what about utmp etc? can tmux update it like screen? setgid?
+- warts on current naming:
+  	- display-time but message-fg/bg/attr
+	- list-* vs show-*
+	- server-info
+	- up-pane/down-pane/swap-pane -U/swap-pane -D vs next-*/previous-*
+	- split-window -> split-pane??
+- a way for force-width/height to apply to only one pane (how?)
+- command to list what is actually running in each window with command line,
+  pid (need some adaption of the osdep code)
+- support for bce
+- some way to force a screen to use the entire terminal even if it is forced
+  to be smaller by other clients. pan smaller terminal? (like screen F)
+	-- idea of a "view" onto a window, need base x/y offsets for redraw
+- handle resize better in copy mode
+- way to copy stuff that is off screen due to resize
+- commands should be able to succeed or fail and have || or && for command
+  lists
+- some way to KEEP a command running continually and just use its LAST line of
+  output
+- bind commands to mouse buttons
+- UTF-8 to a non-UTF-8 terminal should not be able to balls up
+  the terminal - www/ruby-addressable; make regress
+- multiple keys could be done with tables, ie have prefixes go and instead
+	bind -n ^A prefix-table "default"
+  where prefix-table sets command lookup table and sets prefix flag, then next
+  key is looked up in that table
+- support esc-esc to quit in modes
+- fix ctrl+F1-F4 output. to what?
+- look into xterm clearing its selection when scrolling etc
+- better utf8 support: window names, prompt input, message display
+- session history for client and last-session command
+- option to change status line colour when current window is in a mode?
+- option to move copy mode indicator into status line
+- list-buffer/show-buffer should display UTF-8
+- selection behaviour closer to vi in vi mode
+- live update: server started with -U connects to server, requests sessions and
+  windows, receives fds
+- command to show a tree of sessions-windows-panes (active marked with *)
+- sort out inheriting config from shell on new sessions/windows:
+        should pick up default-path/termios/etc from client if possible,
+	else leave empty/default
+- link panes into multiple windows
+- -h option to capture-pane to capture the history as well
+- bells should be passed between sessions with visual-bell etc
+- use screen-256color when started on 256 colour terminal??
+- if-shell/run-shell should block further command execution in the same command
+  sequence until its shell exits, to allow them to be used from the config file
+- better session sharing: create-socket command to create socket somewhere (-r
+  flag for readonly)
+- allow buffer to be specified when copying in copy mode
+- multiline status line (no?)
+- flag for absolute pane size to resize-pane
+- sanity check input to socket
+- select-buffer command
+- support title stack, both internally and externally
+	http://docs.freebsd.org/cgi/getmsg.cgi?fetch=1149299+0+archive/2010/freebsd-questions/20100207.freebsd-questions
+- copy buffers should be global, limit can be server option, nuke copy-buffer
+  command
+- command to show status line information briefly when it is off
+- some way to pad # stuff with spaces, #!2T maybe
+- FreeBSD console problems
+- a binding to "scroll down and exit at bottom" copy mode
+- some way to pass keystrokes in copy mode through to underlying window
+- last window update time and # replacement for it for display-message
+- find-window across sessions - other ways to make session handling easier?
+- ' and " should be parsed the same (eg "\e" vs '\e') in config and command
+  prompt?
+- command to toggle selection not to move it in copy-mode
+- why are alerts per-winlink? try per window?
+- audit of escape sequence support vs xterm
+- support binding keys to mouse (mouse-select-pane -> mouse-keys or something,
+  mouse click == select-pane -t %%, mouse scroll up == copy-mode)
+- something for -t "last window in session" so a session can be used as a stack
+- synchronous commands - client sends cmd and blocks, neww/splitw saves client
+  ptr then when program inside died, sends MSG_SOMETHING with wait status to
+  client
+- documentation improvements - rlpowell's tutorial - build instructions
+- better configure? with-libevent
+- bind commands to key sequences?
+- monitor, bell etc should monitor /all/ panes in the window not just one
+- a history of commands that can be reversed (reverse member of each command,
+  and a buffer) info() when changing to same window
+- don't pass UTF-8 through vis for titles
+- clearing screen should push lines into history
+- add a unique ever-increasing pane id to each pane, export it in $TMUX_PANE
+   (as %1, %2 etc) and allow it to be used as a target
+- way to add dest for break-pane; maybe some easier way to unbreak-pane
+- case insensitive searching
+- dynamically generated jobs (eg "date ...") do not work well because
+  their entries are never collected, should either store status jobs in
+  a different tree or flush all unused persist jobs every update rather
+  than just updating them
+- pane-index option like base-index
+- option to move status line to top
+- support "xterm2" mouse mode
+- respawn-pane command
+- configurable borders and empty space filler for when panes < window?
+
