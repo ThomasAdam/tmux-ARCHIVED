@@ -1,4 +1,4 @@
-.\" $Id: tmux.1,v 1.318 2011-05-22 16:26:58 tcunha Exp $
+.\" $Id$
 .\"
 .\" Copyright (c) 2007 Nicholas Marriott <nicm@users.sourceforge.net>
 .\"
@@ -14,7 +14,7 @@
 .\" IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
 .\" OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: May 21 2011 $
+.Dd $Mdocdate: July 3 2011 $
 .Dt TMUX 1
 .Os
 .Sh NAME
@@ -237,6 +237,8 @@ Break the current pane out of the window.
 Split the current pane into two, top and bottom.
 .It #
 List all paste buffers.
+.It $
+Rename the current session.
 .It %
 Split the current pane into two, left and right.
 .It &
@@ -1311,6 +1313,21 @@ and to the right with
 The
 .Ar adjustment
 is given in lines or cells (the default is 1).
+.It Xo Ic respawn-pane
+.Op Fl k
+.Op Fl t Ar target-pane
+.Op Ar shell-command
+.Xc
+.D1 (alias: Ic respawnp )
+Reactivate a pane in which the command has exited (see the
+.Ic remain-on-exit
+window option).
+If
+.Ar shell-command
+is not given, the command used when the pane was created is executed.
+The pane must be already inactive, unless
+.Fl k
+is given, in which case any existing command is killed.
 .It Xo Ic respawn-window
 .Op Fl k
 .Op Fl t Ar target-window
@@ -1766,6 +1783,11 @@ window of that session,
 means all bells are ignored and
 .Ic current
 means only bell in windows other than the current window are ignored.
+.It Xo Ic bell-on-alert
+.Op Ic on | off
+.Xc
+If on, ring the terminal bell when an activity, content or silence alert
+occurs.
 .It Ic default-command Ar shell-command
 Set the command used for new windows (if not specified when the window is
 created) to
@@ -2620,6 +2642,7 @@ session option.
 Commands related to the status line are as follows:
 .Bl -tag -width Ds
 .It Xo Ic command-prompt
+.Op Fl I Ar inputs
 .Op Fl p Ar prompts
 .Op Fl t Ar target-client
 .Op Ar template
@@ -2632,6 +2655,9 @@ to execute commands interactively.
 If
 .Ar template
 is specified, it is used as the command.
+If present,
+.Fl I
+is a comma-separated list of the initial text for each prompt.
 If
 .Fl p
 is given,
@@ -2642,7 +2668,10 @@ a single prompt is displayed, constructed from
 if it is present, or
 .Ql \&:
 if not.
-The
+.Pp
+Both
+.Ar inputs
+and
 .Ar prompts
 may contain the special character sequences supported by the
 .Ic status-left
@@ -2835,7 +2864,7 @@ understands some extensions to
 .Xr terminfo 5 :
 .Bl -tag -width Ds
 .It Em Cc , Cr
-Set the cursor color.
+Set the cursor colour.
 The first takes a single string argument and is used to set the colour;
 the second takes no arguments and restores the default cursor colour.
 If set, a sequence such as this may be used
