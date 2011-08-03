@@ -1,0 +1,245 @@
+/* $Id: key-string.c,v 1.29 2010-01-17 19:01:27 tcunha Exp $ */
+
+/*
+ * Copyright (c) 2007 Nicholas Marriott <nicm@users.sourceforge.net>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF MIND, USE, DATA OR PROFITS, WHETHER
+ * IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
+ * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#include <sys/types.h>
+
+#include <string.h>
+
+#include "tmux.h"
+
+int	key_string_search_table(const char *);
+
+struct {
+	const char *string;
+	int	 key;
+} key_string_table[] = {
+	/* Function keys. */
+	{ "F1",		KEYC_F1 },
+	{ "F2",		KEYC_F2 },
+	{ "F3",		KEYC_F3 },
+	{ "F4",		KEYC_F4 },
+	{ "F5",		KEYC_F5 },
+	{ "F6",		KEYC_F6 },
+	{ "F7",		KEYC_F7 },
+	{ "F8",		KEYC_F8 },
+	{ "F9",		KEYC_F9 },
+	{ "F10",	KEYC_F10 },
+	{ "F11",	KEYC_F11 },
+	{ "F12",	KEYC_F12 },
+	{ "F13",	KEYC_F13 },
+	{ "F14",	KEYC_F14 },
+	{ "F15",	KEYC_F15 },
+	{ "F16",	KEYC_F16 },
+	{ "F17",	KEYC_F17 },
+	{ "F18",	KEYC_F18 },
+	{ "F19",	KEYC_F19 },
+	{ "F20",	KEYC_F20 },
+	{ "IC",		KEYC_IC },
+	{ "DC",		KEYC_DC },
+	{ "Home",	KEYC_HOME },
+	{ "End",	KEYC_END },
+	{ "NPage",	KEYC_NPAGE },
+	{ "PPage",	KEYC_PPAGE },
+	{ "Tab",	'\011' },
+	{ "BTab",	KEYC_BTAB },
+	{ "Space",	' ' },
+	{ "BSpace",	KEYC_BSPACE },
+	{ "Enter",	'\r' },
+	{ "Escape",	'\033' },
+
+	/* Arrow keys. */
+	{ "Up",		KEYC_UP },
+	{ "Down",	KEYC_DOWN },
+	{ "Left",	KEYC_LEFT },
+	{ "Right",	KEYC_RIGHT },
+
+	/* Numeric keypad. */
+	{ "KP/", 	KEYC_KP_SLASH },
+	{ "KP*",	KEYC_KP_STAR },
+	{ "KP-",	KEYC_KP_MINUS },
+	{ "KP7",	KEYC_KP_SEVEN },
+	{ "KP8",	KEYC_KP_EIGHT },
+	{ "KP9",	KEYC_KP_NINE },
+	{ "KP+",	KEYC_KP_PLUS },
+	{ "KP4",	KEYC_KP_FOUR },
+	{ "KP5",	KEYC_KP_FIVE },
+	{ "KP6",	KEYC_KP_SIX },
+	{ "KP1",	KEYC_KP_ONE },
+	{ "KP2",	KEYC_KP_TWO },
+	{ "KP3",	KEYC_KP_THREE },
+	{ "KPEnter",	KEYC_KP_ENTER },
+	{ "KP0",	KEYC_KP_ZERO },
+	{ "KP.",	KEYC_KP_PERIOD },
+};
+
+/* Find key string in table. */
+int
+key_string_search_table(const char *string)
+{
+	u_int	i;
+
+	for (i = 0; i < nitems(key_string_table); i++) {
+		if (strcasecmp(string, key_string_table[i].string) == 0)
+			return (key_string_table[i].key);
+	}
+	return (KEYC_NONE);
+}
+
+/* Lookup a string and convert to a key value, handling C-/M-/S- prefix. */
+int
+key_string_lookup_string(const char *string)
+{
+	int	      	 key;
+	const char	*ptr;
+
+	if (string[0] == '\0')
+		return (KEYC_NONE);
+	if (string[1] == '\0')
+		return ((u_char) string[0]);
+
+	ptr = NULL;
+	if ((string[0] == 'C' || string[0] == 'c') && string[1] == '-')
+		ptr = string + 2;
+	else if (string[0] == '^')
+		ptr = string + 1;
+	if (ptr != NULL) {
+		if (ptr[0] == '\0')
+			return (KEYC_NONE);
+		/*
+		 * Lookup as a named key. If a function key (>= KEYC_BASE),
+		 * return it with the ctrl modifier, otherwise fallthrough with
+		 * the key value from the table (eg for C-Space). If not a
+		 * named key, check for single character keys and try that.
+		 */
+		key = key_string_search_table(ptr);
+		if (key != KEYC_NONE) {
+			if (key >= KEYC_BASE)
+				return (key | KEYC_CTRL);
+		} else {
+			if (ptr[1] != '\0')
+				return (KEYC_NONE);
+			key = (u_char) ptr[0];
+		}
+
+		/*
+		 * Figure out if the single character in key is a valid ctrl
+		 * key.
+		 */
+		if (key == 32)
+			return (0);
+		if (key == 63)
+			return (KEYC_BSPACE);
+		if (key >= 64 && key <= 95)
+			return (key - 64);
+		if (key >= 97 && key <= 122)
+			return (key - 96);
+		return (KEYC_NONE);
+	}
+
+	if ((string[0] == 'M' || string[0] == 'm') && string[1] == '-') {
+		ptr = string + 2;
+		if (ptr[0] == '\0')
+			return (KEYC_NONE);
+		key = key_string_lookup_string(ptr);
+		if (key != KEYC_NONE) {
+			if (key >= KEYC_BASE)
+				return (key | KEYC_ESCAPE);
+		} else {
+			if (ptr[1] == '\0')
+				return (KEYC_NONE);
+			key = (u_char) ptr[0];
+		}
+
+		if (key >= 32 && key <= 127)
+			return (key | KEYC_ESCAPE);
+		return (KEYC_NONE);
+	}
+
+	if ((string[0] == 'S' || string[0] == 's') && string[1] == '-') {
+		ptr = string + 2;
+		if (ptr[0] == '\0')
+			return (KEYC_NONE);
+		key = key_string_lookup_string(ptr);
+		if (key != KEYC_NONE) {
+			if (key >= KEYC_BASE)
+				return (key | KEYC_SHIFT);
+		} else {
+			if (ptr[1] == '\0')
+				return (KEYC_NONE);
+			key = (u_char) ptr[0];
+		}
+
+		if (key >= 32 && key <= 127)
+			return (key | KEYC_SHIFT);
+		return (KEYC_NONE);
+	}
+
+	return (key_string_search_table(string));
+}
+
+/* Convert a key code into string format, with prefix if necessary. */
+const char *
+key_string_lookup_key(int key)
+{
+	static char tmp[24], tmp2[24];
+	const char *s;
+	u_int	    i;
+
+	if (key == 127)
+		return (NULL);
+
+	if (key & KEYC_ESCAPE) {
+		if ((s = key_string_lookup_key(key & ~KEYC_ESCAPE)) == NULL)
+			return (NULL);
+		xsnprintf(tmp2, sizeof tmp2, "M-%s", s);
+		return (tmp2);
+	}
+	if (key & KEYC_CTRL) {
+		if ((s = key_string_lookup_key(key & ~KEYC_CTRL)) == NULL)
+			return (NULL);
+		xsnprintf(tmp2, sizeof tmp2, "C-%s", s);
+		return (tmp2);
+	}
+	if (key & KEYC_SHIFT) {
+		if ((s = key_string_lookup_key(key & ~KEYC_SHIFT)) == NULL)
+			return (NULL);
+		xsnprintf(tmp2, sizeof tmp2, "S-%s", s);
+		return (tmp2);
+	}
+
+	for (i = 0; i < nitems(key_string_table); i++) {
+		if (key == key_string_table[i].key)
+			return (key_string_table[i].string);
+	}
+
+	if (key >= 32 && key <= 255) {
+		tmp[0] = (char) key;
+		tmp[1] = '\0';
+		return (tmp);
+	}
+
+	if (key >= 0 && key <= 32) {
+		if (key == 0 || key > 26)
+			xsnprintf(tmp, sizeof tmp, "C-%c", 64 + key);
+		else
+			xsnprintf(tmp, sizeof tmp, "C-%c", 96 + key);
+		return (tmp);
+	}
+
+	return (NULL);
+}

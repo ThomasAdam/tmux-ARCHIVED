@@ -1,0 +1,106 @@
+- window creation/idle time
+- better errors when creating new windows/sessions (how?)
+- implicitly add exec to the commands for new windows (switch to disable it)?
+- it would be nice to have multichar commands eg C-b K K
+- commands:
+ 	extend list-clients to list clients attached to a session (-a for all?)
+	bring back detach-session to detach all clients on a session?
+- allow fnmatch for -c, so that you can, eg, detach all clients
+- garbage collect window history (100 lines at a time?) if it hasn't been used
+  in $x time (need window creation/use times)
+- lift SHRT_MAX limits for history?
+- better mode features: search
+- flags to centre screen in window
+- better terminal emulation
+- activity/bell should be per-window not per-link? what if it is cur win in
+  session not being watched?
+- next prev word etc in command prompt; also ^K
+- many more info() displays for various things
+- backspace should perhaps wrap backwards over newlines which were not moved
+  down by a newline: screen and the OS X terminal does this but xterm and most
+  others do not. this might be hard: a flag for each grid line (top bit of size
+  maybe)? a single flag is insufficient as can't then tell when to /stop/
+  unwrapping
+- input.c is too complicated. simplify?
+- use a better termcap internally instead of screen, perhaps xterm
+- kill all but current pane
+- fix rxvt cursor fg issue (text under cursor can have non-white fg)
+- client sx/sy should be in tty, then can let the terminal wrap at edge
+  to allow xterm to pick up it should be one line for its c/p
+- should be able to move to a hidden pane and it would be moved into view. pane
+  number in status line/top-right would be cool for this
+- support other mouse modes (highlight etc) and use it in copy mode
+- set-remain-on-exit is a bit of a hack, some way to do it generically?
+- set-option should be set-session-option and should be overall global options
+  for stuff like mode keys?
+      also quiet, utf8 and maybe other flags?
+  -g is a bit unexpected in conf file
+- clear window title on exit
+- the output code (tty.c) could do with optimisation depending on term
+  capibilities
+- would be nice to be able to use "--" to mark start of command w/ neww etc
+  to avoid quoting
+- goto line and search history in copy/scroll modes
+- clone session command
+- make command sequences more usable: don't require space after ;, handle
+  errors better
+- key to switch to copy mode from scroll mode
+- attach should have a flag to create session if it doesn't exist
+- rename split-window -> split-pane??
+- fix UTF-8 guesswork on sparc64, improve tty checks
+- choice and more mode would be better per client than per window?
+- hooks to which commands may be attached, for example: tmux add-hook
+  "new-session" if-shell "[ -e $HOME/.tmux-session.conf ]" source-file
+  $HOME/.tmux-session.conf
+- get it passing all the vttest tests that don't require resizing the terminal
+- esc seq to set window title should be documented and should set
+  automatic-rename
+- way to set socket path from config file
+- XXX once env stuff is in, default-path and VISUAL/EDITOR should be picked up
+  when session is started
+- what about utmp etc? can tmux update it like screen? setgid?
+- H/M/L commands in copy mode with vi-keys, for jumping to the top/middle/last
+  line on the screen
+- split list-windows into separate list-windows and list-panes
+- warts on current naming:
+  	- display-time but message-fg/bg/attr
+	- list-* vs show-*
+	- server-info
+	- up-pane/down-pane/swap-pane -U/swap-pane -D vs next-*/previous-*
+- pcvt25 doesn't work properly, why? (bce?)
+- tidy up and prioritise todo list ;-)
+- it is only possible to specify 8 colours to fg/bg options; should be able to
+  set 256 as well
+- neww and attach can create a session if none exists?
+       would work fine with config file since
+- a way for force-width/height to apply to only one pane (how?)
+- **** a command to run something without a window and send any output to the
+  window-more. if no output, info() a line saying "'%s' returned %d". so i can
+  bind mpc control commands to function keys ;-)
+- command to list what is actually running in each window with command line,
+  pid (need some adaption of the osdep code)
+- string option to change/remove the symbols (*-+ etc) in status line
+- support for bce
+- it would be nice if the start/end line keys in copy mode were aware of
+  wrapped lines
+- per session locking
+- some way to force a screen to use the entire terminal even if it is forced
+  to be smaller by other clients. pan smaller terminal? (like screen F)
+		-- idea of a "view" onto a window, need base x/y offsets
+		   for redraw
+- a window option which means data is echoed to all panes in a window
+- support running tmux from inside tmux [#(), if-shell] --
+  	  generic system-like function which may take a callback
+	  also sets up environment (TMUX) and has a timeout
+	for #(): command schedular, status line queues it with a time, run in
+	main loop, and uses most recent result -- can also be used for persistent
+	commands which never exit just continually output
+	for if-shell, callback??
+- handle resize better in copy mode
+- way to copy stuff that is off screen due to resize
+- fix line wrapping c&p problems in xterm etc
+- a way to address panes by name ("top-left") and position ("0,0")
+- ability to specify multiple prefix keys
+- commands should be able to succeed or fail and have || or && for command
+  lists
+- support the mouse wheel to scroll through history
