@@ -1398,6 +1398,15 @@ Rename the current window, or the window at
 .Ar target-window
 if specified, to
 .Ar new-name .
+.It Xo Ic renumber-windows
+.Op Fl t Ar target-session
+.Xc
+.D1 (alias: Ic renumberw )
+Renumber all windows in numerical order in the given
+.Ar target-session
+respecting the
+.Ic base-index
+option if set.
 .It Xo Ic resize-pane
 .Op Fl DLRU
 .Op Fl t Ar target-pane
@@ -1898,6 +1907,18 @@ interactive menu when required.
 .Pp
 Available session options are:
 .Bl -tag -width Ds
+.It Xo Ic automatic-renumber-windows
+.Op Ic on | off
+.Xc
+If on, when a window is closed in a session, automatically renumber the other
+windows in numerical order.
+This respects the
+.Ic base-index
+option if it has been set.
+If off, do not renumber the windows.
+See the
+.Ic renumber-windows
+command.
 .It Ic base-index Ar index
 Set the base index from which an unused index should be searched when a new
 window is created.
