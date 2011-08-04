@@ -90,6 +90,11 @@ const struct options_table_entry server_options_table[] = {
 
 /* Session options. */
 const struct options_table_entry session_options_table[] = {
+	{ .name = "automatic-renumber-windows",
+	  .type = OPTIONS_TABLE_FLAG,
+	  .default_num = 0
+	},
+
 	{ .name = "base-index",
 	  .type = OPTIONS_TABLE_NUMBER,
 	  .minimum = 0,
