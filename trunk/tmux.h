@@ -1995,6 +1995,8 @@ int		 window_pane_visible(struct window_pane *);
 char		*window_pane_search(
 		     struct window_pane *, const char *, u_int *);
 char		*window_printable_flags(struct session *, struct winlink *);
+int		 window_renumber_windows(struct session *);
+
 struct window_pane *window_pane_find_up(struct window_pane *);
 struct window_pane *window_pane_find_down(struct window_pane *);
 struct window_pane *window_pane_find_left(struct window_pane *);
