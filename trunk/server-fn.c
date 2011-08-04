@@ -263,6 +263,11 @@ server_kill_window(struct window *w)
 			} else
 				server_redraw_session_group(s);
 		}
+
+		/* Renumber all windows if we've been asked to. */
+		if (options_get_number(&s->options,
+				"renumber-windows"))
+			session_renumber_windows(s);
 	}
 }
 
