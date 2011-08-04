@@ -1641,6 +1641,7 @@ extern const struct cmd_entry cmd_previous_window_entry;
 extern const struct cmd_entry cmd_refresh_client_entry;
 extern const struct cmd_entry cmd_rename_session_entry;
 extern const struct cmd_entry cmd_rename_window_entry;
+extern const struct cmd_entry cmd_renumber_windows_entry;
 extern const struct cmd_entry cmd_resize_pane_entry;
 extern const struct cmd_entry cmd_respawn_pane_entry;
 extern const struct cmd_entry cmd_respawn_window_entry;

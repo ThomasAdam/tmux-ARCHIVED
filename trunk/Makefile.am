@@ -104,6 +104,7 @@ dist_tmux_SOURCES = \
 	cmd-refresh-client.c \
 	cmd-rename-session.c \
 	cmd-rename-window.c \
+	cmd-renumber-windows.c \
 	cmd-resize-pane.c \
 	cmd-respawn-pane.c \
 	cmd-respawn-window.c \
