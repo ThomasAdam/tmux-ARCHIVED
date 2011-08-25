@@ -14,7 +14,7 @@
 .\" IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
 .\" OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: August 16 2011 $
+.Dd $Mdocdate: August 24 2011 $
 .Dt TMUX 1
 .Os
 .Sh NAME
@@ -495,7 +495,8 @@ $ tmux bind-key F1 set-window-option force-width 81
 Multiple commands may be specified together as part of a
 .Em command sequence .
 Each command should be separated by spaces and a semicolon;
-commands are executed sequentially from left to right.
+commands are executed sequentially from left to right and
+lines ending with a backslash continue on to the next line.
 A literal semicolon may be included by escaping it with a backslash (for
 example, when specifying a command sequence to
 .Ic bind-key ) .
@@ -511,6 +512,9 @@ rename-session -tfirst newname
 set-window-option -t:0 monitor-activity on
 
 new-window ; split-window -d
+
+bind-key R source-file ~/.tmux.conf \e; \e
+	display-message "source-file done"
 .Ed
 .Pp
 Or from
@@ -2421,6 +2425,11 @@ Like
 but set the width of other panes in the
 .Ic main-vertical
 layout.
+.Pp
+.It Ic pane-base-index Ar index
+Like
+.Ic base-index ,
+but set the starting index for pane numbers.
 .Pp
 .It Xo Ic remain-on-exit
 .Op Ic on | off
