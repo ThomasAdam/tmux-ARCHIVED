@@ -14,7 +14,7 @@
 .\" IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING
 .\" OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: August 26 2011 $
+.Dd $Mdocdate: October 2 2011 $
 .Dt TMUX 1
 .Os
 .Sh NAME
@@ -620,10 +620,14 @@ is specified, list only clients connected to that session.
 .D1 (alias: Ic lscm )
 List the syntax of all commands supported by
 .Nm .
-.It Ic list-sessions
-.Op Fl F Ar format
+.It Ic list-sessions Op Fl F Ar format
 .D1 (alias: Ic ls )
 List all sessions managed by the server.
+For the meaning of the
+.Fl F
+flag, see the
+.Sx FORMATS
+section.
 .It Ic lock-client Op Fl t Ar target-client
 .D1 (alias: Ic lockc )
 Lock
@@ -631,11 +635,6 @@ Lock
 see the
 .Ic lock-server
 command.
-For the meaning of the
-.Fl F
-flag, see the
-.Sx FORMATS
-section.
 .It Ic lock-session Op Fl t Ar target-session
 .D1 (alias: Ic locks )
 Lock all clients attached to
@@ -691,11 +690,17 @@ or
 are invalid if
 .Fl t
 is used.
-.It Ic refresh-client Op Fl t Ar target-client
+.It Xo Ic refresh-client
+.Op Fl S
+.Op Fl t Ar target-client
+.Xc
 .D1 (alias: Ic refresh )
 Refresh the current client if bound to a key, or a single client if one is given
 with
 .Fl t .
+If
+.Fl S
+is specified, only update the client's status bar.
 .It Xo Ic rename-session
 .Op Fl t Ar target-session
 .Ar new-name
@@ -1174,6 +1179,11 @@ is a session (or the current session).
 If neither is given,
 .Ar target
 is a window (or the current window).
+For the meaning of the
+.Fl F
+flag, see the
+.Sx FORMATS
+section.
 .It Xo Ic list-windows
 .Op Fl a
 .Op Fl F Ar format
@@ -2597,7 +2607,11 @@ The following variables are available, where appropriate:
 .It Li "pane_dead" Ta "1 if pane is dead"
 .It Li "pane_height" Ta "Height of pane"
 .It Li "pane_id" Ta "Unique pane id"
+.It Li "pane_pid" Ta "PID of first process in pane"
+.It Li "pane_start_command" Ta "Command pane started with"
+.It Li "pane_start_path" Ta "Path pane started with"
 .It Li "pane_title" Ta "Title of pane"
+.It Li "pane_tty" Ta "Pseudo terminal of pane"
 .It Li "pane_width" Ta "Width of pane"
 .It Li "session_attached" Ta "1 if session attached"
 .It Li "session_created" Ta "Integer time session created"
