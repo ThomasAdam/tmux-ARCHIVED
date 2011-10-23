@@ -202,6 +202,7 @@ enum tty_code_code {
 	TTYC_DIM,	/* enter_dim_mode, mh */
 	TTYC_DL,	/* parm_delete_line, DL */
 	TTYC_DL1,	/* delete_line, dl */
+	TTYC_E3,
 	TTYC_EL,	/* clr_eol, ce */
 	TTYC_EL1,	/* clr_bol, cb */
 	TTYC_ENACS,	/* ena_acs, eA */
@@ -1341,6 +1342,7 @@ void		 logfile(const char *);
 const char	*getshell(void);
 int		 checkshell(const char *);
 int		 areshell(const char *);
+const char*	 get_full_path(const char *, const char *);
 void		 setblocking(int, int);
 __dead void	 shell_exec(const char *, const char *);
 
@@ -1360,6 +1362,7 @@ void		 format_add(
 const char	*format_find(struct format_tree *, const char *);
 char		*format_expand(struct format_tree *, const char *);
 void		 format_session(struct format_tree *, struct session *);
+void		 format_client(struct format_tree *, struct client *);
 void		 format_winlink(
 		     struct format_tree *, struct session *, struct winlink *);
 void		 format_window_pane(struct format_tree *, struct window_pane *);
@@ -1860,6 +1863,7 @@ void	 screen_write_kkeypadmode(struct screen_write_ctx *, int);
 void	 screen_write_clearendofscreen(struct screen_write_ctx *);
 void	 screen_write_clearstartofscreen(struct screen_write_ctx *);
 void	 screen_write_clearscreen(struct screen_write_ctx *);
+void	 screen_write_clearhistory(struct screen_write_ctx *);
 void	 screen_write_cell(struct screen_write_ctx *,
 	     const struct grid_cell *, const struct utf8_data *);
 void	 screen_write_setselection(struct screen_write_ctx *, u_char *, u_int);

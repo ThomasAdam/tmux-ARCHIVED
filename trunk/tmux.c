@@ -127,6 +127,22 @@ areshell(const char *shell)
 	return (0);
 }
 
+const char*
+get_full_path(const char *wd, const char *path)
+{
+	static char	newpath[MAXPATHLEN];
+	char		oldpath[MAXPATHLEN];
+
+	if (getcwd(oldpath, sizeof oldpath) == NULL)
+		return (NULL);
+	if (chdir(wd) != 0)
+		return (NULL);
+	if (realpath(path, newpath) != 0)
+		return (NULL);
+	chdir(oldpath);
+	return (newpath);
+}
+
 void
 parseenvironment(void)
 {
@@ -295,8 +311,8 @@ main(int argc, char **argv)
 		 * if not they know that output from UTF-8-capable programs may
 		 * be wrong.
 		 */
-		if ((s = getenv("LC_ALL")) == NULL) {
-			if ((s = getenv("LC_CTYPE")) == NULL)
+		if ((s = getenv("LC_ALL")) == NULL || *s == '\0') {
+			if ((s = getenv("LC_CTYPE")) == NULL || *s == '\0')
 				s = getenv("LANG");
 		}
 		if (s != NULL && (strcasestr(s, "UTF-8") != NULL ||
