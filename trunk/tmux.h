@@ -443,9 +443,12 @@ enum mode_key_cmd {
 	MODEKEYEDIT_ENTER,
 	MODEKEYEDIT_HISTORYDOWN,
 	MODEKEYEDIT_HISTORYUP,
+	MODEKEYEDIT_NEXTSPACE,
+	MODEKEYEDIT_NEXTSPACEEND,
 	MODEKEYEDIT_NEXTWORD,
 	MODEKEYEDIT_NEXTWORDEND,
 	MODEKEYEDIT_PASTE,
+	MODEKEYEDIT_PREVIOUSSPACE,
 	MODEKEYEDIT_PREVIOUSWORD,
 	MODEKEYEDIT_STARTOFLINE,
 	MODEKEYEDIT_SWITCHMODE,
@@ -1558,7 +1561,7 @@ int		 cmd_find_index(
 struct winlink	*cmd_find_pane(struct cmd_ctx *,
 		     const char *, struct session **, struct window_pane **);
 char		*cmd_template_replace(char *, const char *, int);
-char		*cmd_get_default_path(struct cmd_ctx *ctx);
+const char     	*cmd_get_default_path(struct cmd_ctx *ctx);
 extern const struct cmd_entry *cmd_table[];
 extern const struct cmd_entry cmd_attach_session_entry;
 extern const struct cmd_entry cmd_bind_key_entry;

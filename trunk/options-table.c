@@ -435,6 +435,11 @@ const struct options_table_entry window_options_table[] = {
 	  .default_num = 0
 	},
 
+	{ .name = "allow-rename",
+	  .type = OPTIONS_TABLE_FLAG,
+	  .default_num = 1
+	},
+
 	{ .name = "alternate-screen",
 	  .type = OPTIONS_TABLE_FLAG,
 	  .default_num = 1
@@ -564,17 +569,47 @@ const struct options_table_entry window_options_table[] = {
 	  .default_num = 0 /* overridden in main() */
 	},
 
-	{ .name = "window-status-alert-attr",
+	{ .name = "window-status-bell-attr",
 	  .type = OPTIONS_TABLE_ATTRIBUTES,
 	  .default_num = GRID_ATTR_REVERSE
 	},
 
-	{ .name = "window-status-alert-bg",
+	{ .name = "window-status-bell-bg",
 	  .type = OPTIONS_TABLE_COLOUR,
 	  .default_num = 8
 	},
 
-	{ .name = "window-status-alert-fg",
+	{ .name = "window-status-bell-fg",
+	  .type = OPTIONS_TABLE_COLOUR,
+	  .default_num = 8
+	},
+
+	{ .name = "window-status-content-attr",
+	  .type = OPTIONS_TABLE_ATTRIBUTES,
+	  .default_num = GRID_ATTR_REVERSE
+	},
+
+	{ .name = "window-status-content-bg",
+	  .type = OPTIONS_TABLE_COLOUR,
+	  .default_num = 8
+	},
+
+	{ .name = "window-status-content-fg",
+	  .type = OPTIONS_TABLE_COLOUR,
+	  .default_num = 8
+	},
+
+	{ .name = "window-status-activity-attr",
+	  .type = OPTIONS_TABLE_ATTRIBUTES,
+	  .default_num = GRID_ATTR_REVERSE
+	},
+
+	{ .name = "window-status-activity-bg",
+	  .type = OPTIONS_TABLE_COLOUR,
+	  .default_num = 8
+	},
+
+	{ .name = "window-status-activity-fg",
 	  .type = OPTIONS_TABLE_COLOUR,
 	  .default_num = 8
 	},
