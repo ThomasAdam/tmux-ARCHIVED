@@ -1,7 +1,7 @@
 # $Id$
 
 # Miscellaneous autofoo bullshit.
-AC_INIT(tmux, 1.6)
+AC_INIT(tmux, 1.7)
 
 AC_CONFIG_AUX_DIR(etc)
 AM_INIT_AUTOMAKE([foreign])
@@ -105,11 +105,22 @@ AC_MSG_RESULT($found_glibc)
 AC_SEARCH_LIBS(clock_gettime, rt)
 
 # Look for libevent.
-AC_SEARCH_LIBS(
-	event_init,
-	[event event-1.4 event2],
-	found_libevent=yes,
-	found_libevent=no
+PKG_CHECK_MODULES(
+	LIBEVENT,
+	libevent,
+	[
+		CPPFLAGS="$LIBEVENT_CFLAGS $CPPFLAGS"
+		LIBS="$LIBEVENT_LIBS $LIBS"
+		found_libevent=yes
+	],
+	[
+		AC_SEARCH_LIBS(
+			event_init,
+			[event event-1.4 event2],
+			found_libevent=yes,
+			found_libevent=no
+		)
+	]
 )
 if test "x$found_libevent" = xno; then
 	AC_MSG_ERROR("libevent not found")
@@ -167,9 +178,6 @@ AM_CONDITIONAL(NO_B64_NTOP, [test "x$found_b64_ntop" = xno])
 AC_SEARCH_LIBS(inet_ntoa, nsl)
 AC_SEARCH_LIBS(socket, socket)
 AC_CHECK_LIB(xnet, socket)
-
-# Look for sqrt.
-AC_SEARCH_LIBS(sqrt, m)
 
 # Check for CMSG_DATA. Some platforms require _XOPEN_SOURCE_EXTENDED (for
 # example see xopen_networking(7) on HP-UX).
@@ -331,6 +339,7 @@ AM_CONDITIONAL(NO_GETOPT, [test "x$found_getopt" = xno])
 AC_CHECK_FUNCS(
 	[ \
 		bzero \
+		dirfd \
 		setproctitle \
 		sysconf \
 	]
@@ -338,7 +347,7 @@ AC_CHECK_FUNCS(
 
 # Check for BSD-style integer types.
 AC_MSG_CHECKING(for BSD-style unsigned types)
-AC_COMPILE_IFELSE(
+AC_COMPILE_IFELSE([AC_LANG_SOURCE(
 	[
 		#include <sys/types.h>
 		#ifdef HAVE_STDINT_H
@@ -348,7 +357,7 @@ AC_COMPILE_IFELSE(
 		#endif	
 		int main(void)
 		{ u_int8_t u8; u_int16_t u16; u_int32_t u32; u_int64_t u64; }
-	],
+       ])],
 	[AC_DEFINE(HAVE_BSD_TYPES) AC_MSG_RESULT(yes)],
 	AC_MSG_RESULT(no)
 )
@@ -372,7 +381,7 @@ fi
 
 # Look for __progname.
 AC_MSG_CHECKING(for __progname)
-AC_LINK_IFELSE(
+AC_LINK_IFELSE([AC_LANG_SOURCE(
 	[
 		#include <stdio.h>
 		#include <stdlib.h>
@@ -382,7 +391,7 @@ AC_LINK_IFELSE(
 			printf("%s\n", cp);
 			exit(0);
 		}
-	],
+       ])],
 	[AC_DEFINE(HAVE___PROGNAME) AC_MSG_RESULT(yes)],
 	AC_MSG_RESULT(no)
 )
@@ -404,15 +413,6 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-# Look for /proc/$$/fd.
-AC_MSG_CHECKING(for /proc/\$\$/fd)
-if test -d /proc/$$/fd; then
-	AC_DEFINE(HAVE_DIRFD)
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
 # Figure out the platform for osdep-*.c and forkpty-*.c.
 AC_MSG_CHECKING(platform)
 case "$host_os" in
@@ -425,11 +425,15 @@ case "$host_os" in
 		AC_DEFINE(BROKEN_CMSG_FIRSTHDR)
 		PLATFORM=darwin
 		;;
+	*dragonfly*)
+		AC_MSG_RESULT(dragonfly)
+		PLATFORM=dragonfly
+		;;
 	*linux*)
 		AC_MSG_RESULT(linux)
 		PLATFORM=linux
 		;;
-	*freebsd*|*dragonfly*)
+	*freebsd*)
 		AC_MSG_RESULT(freebsd)
 		PLATFORM=freebsd
 		;;
@@ -461,6 +465,7 @@ esac
 AC_SUBST(PLATFORM)
 AM_CONDITIONAL(IS_AIX, test "x$PLATFORM" = xaix)
 AM_CONDITIONAL(IS_DARWIN, test "x$PLATFORM" = xdarwin)
+AM_CONDITIONAL(IS_DRAGONFLY, test "x$PLATFORM" = xdragonfly)
 AM_CONDITIONAL(IS_LINUX, test "x$PLATFORM" = xlinux)
 AM_CONDITIONAL(IS_FREEBSD, test "x$PLATFORM" = xfreebsd)
 AM_CONDITIONAL(IS_NETBSD, test "x$PLATFORM" = xnetbsd)
