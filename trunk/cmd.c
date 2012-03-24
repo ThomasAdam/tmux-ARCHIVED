@@ -20,6 +20,7 @@
 #include <sys/time.h>
 
 #include <fnmatch.h>
+#include <pwd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -119,8 +120,10 @@ struct session	*cmd_lookup_session(const char *, int *);
 struct winlink	*cmd_lookup_window(struct session *, const char *, int *);
 int		 cmd_lookup_index(struct session *, const char *, int *);
 struct window_pane *cmd_lookup_paneid(const char *);
-struct session	*cmd_pane_session(struct cmd_ctx *,
-		    struct window_pane *, struct winlink **);
+struct winlink	*cmd_lookup_winlink_windowid(struct session *, const char *);
+struct window	*cmd_lookup_windowid(const char *);
+struct session	*cmd_window_session(struct cmd_ctx *,
+		    struct window *, struct winlink **);
 struct winlink	*cmd_find_window_offset(const char *, struct session *, int *);
 int		 cmd_find_index_offset(const char *, struct session *, int *);
 struct window_pane *cmd_find_pane_offset(const char *, struct winlink *);
@@ -586,6 +589,10 @@ cmd_lookup_window(struct session *s, const char *name, int *ambiguous)
 
 	*ambiguous = 0;
 
+	/* Try as a window id. */
+	if ((wl = cmd_lookup_winlink_windowid(s, name)) != NULL)
+	    return (wl);
+
 	/* First see if this is a valid window index in this session. */
 	idx = strtonum(name, 0, INT_MAX, &errstr);
 	if (errstr == NULL) {
@@ -648,10 +655,7 @@ cmd_lookup_index(struct session *s, const char *name, int *ambiguous)
 	return (-1);
 }
 
-/*
- * Lookup pane id. An initial % means a pane id. sp must already point to the
- * current session.
- */
+/* Lookup pane id. An initial % means a pane id. */
 struct window_pane *
 cmd_lookup_paneid(const char *arg)
 {
@@ -667,19 +671,50 @@ cmd_lookup_paneid(const char *arg)
 	return (window_pane_find_by_id(paneid));
 }
 
-/* Find session and winlink for pane. */
+/* Lookup window id in a session. An initial @ means a window id. */
+struct winlink *
+cmd_lookup_winlink_windowid(struct session *s, const char *arg)
+{
+	const char	*errstr;
+	u_int		 windowid;
+
+	if (*arg != '@')
+		return (NULL);
+
+	windowid = strtonum(arg + 1, 0, UINT_MAX, &errstr);
+	if (errstr != NULL)
+		return (NULL);
+	return (winlink_find_by_window_id(&s->windows, windowid));
+}
+
+/* Lookup window id. An initial @ means a window id. */
+struct window *
+cmd_lookup_windowid(const char *arg)
+{
+	const char	*errstr;
+	u_int		 windowid;
+
+	if (*arg != '@')
+		return (NULL);
+
+	windowid = strtonum(arg + 1, 0, UINT_MAX, &errstr);
+	if (errstr != NULL)
+		return (NULL);
+	return (window_find_by_id(windowid));
+}
+
+/* Find session and winlink for window. */
 struct session *
-cmd_pane_session(struct cmd_ctx *ctx, struct window_pane *wp,
-    struct winlink **wlp)
+cmd_window_session(struct cmd_ctx *ctx, struct window *w, struct winlink **wlp)
 {
 	struct session		*s;
 	struct sessionslist	 ss;
 	struct winlink		*wl;
 
-	/* If this pane is in the current session, return that winlink. */
+	/* If this window is in the current session, return that winlink. */
 	s = cmd_current_session(ctx, 0);
 	if (s != NULL) {
-		wl = winlink_find_by_window(&s->windows, wp->window);
+		wl = winlink_find_by_window(&s->windows, w);
 		if (wl != NULL) {
 			if (wlp != NULL)
 				*wlp = wl;
@@ -687,16 +722,16 @@ cmd_pane_session(struct cmd_ctx *ctx, struct window_pane *wp,
 		}
 	}
 
-	/* Otherwise choose from all sessions with this pane. */
+	/* Otherwise choose from all sessions with this window. */
 	ARRAY_INIT(&ss);
 	RB_FOREACH(s, sessions, &sessions) {
-		if (winlink_find_by_window(&s->windows, wp->window) != NULL)
+		if (winlink_find_by_window(&s->windows, w) != NULL)
 			ARRAY_ADD(&ss, s);
 	}
 	s = cmd_choose_session_list(&ss);
 	ARRAY_FREE(&ss);
 	if (wlp != NULL)
-		*wlp = winlink_find_by_window(&s->windows, wp->window);
+		*wlp = winlink_find_by_window(&s->windows, w);
 	return (s);
 }
 
@@ -706,6 +741,7 @@ cmd_find_session(struct cmd_ctx *ctx, const char *arg, int prefer_unattached)
 {
 	struct session		*s;
 	struct window_pane	*wp;
+	struct window		*w;
 	struct client		*c;
 	char			*tmparg;
 	size_t			 arglen;
@@ -715,9 +751,11 @@ cmd_find_session(struct cmd_ctx *ctx, const char *arg, int prefer_unattached)
 	if (arg == NULL)
 		return (cmd_current_session(ctx, prefer_unattached));
 
-	/* Lookup as pane id. */
+	/* Lookup as pane id or window id. */
 	if ((wp = cmd_lookup_paneid(arg)) != NULL)
-		return (cmd_pane_session(ctx, wp, NULL));
+		return (cmd_window_session(ctx, wp->window, NULL));
+	if ((w = cmd_lookup_windowid(arg)) != NULL)
+		return (cmd_window_session(ctx, w, NULL));
 
 	/* Trim a single trailing colon if any. */
 	tmparg = xstrdup(arg);
@@ -779,7 +817,7 @@ cmd_find_window(struct cmd_ctx *ctx, const char *arg, struct session **sp)
 
 	/* Lookup as pane id. */
 	if ((wp = cmd_lookup_paneid(arg)) != NULL) {
-		s = cmd_pane_session(ctx, wp, &wl);
+		s = cmd_window_session(ctx, wp->window, &wl);
 		if (sp != NULL)
 			*sp = s;
 		return (wl);
@@ -1080,7 +1118,7 @@ cmd_find_pane(struct cmd_ctx *ctx,
 
 	/* Lookup as pane id. */
 	if ((*wpp = cmd_lookup_paneid(arg)) != NULL) {
-		s = cmd_pane_session(ctx, *wpp, &wl);
+		s = cmd_window_session(ctx, (*wpp)->window, &wl);
 		if (sp != NULL)
 			*sp = s;
 		return (wl);
@@ -1213,34 +1251,82 @@ cmd_template_replace(char *template, const char *s, int idx)
 	return (buf);
 }
 
-/* Return the default path for a new pane. */
+/*
+ * Return the default path for a new pane, using the given path or the
+ * default-path option if it is NULL. Several special values are accepted: the
+ * empty string or relative path for the current pane's working directory, ~
+ * for the user's home, - for the session working directory, . for the tmux
+ * server's working directory. The default on failure is the session's working
+ * directory.
+ */
 const char *
-cmd_get_default_path(struct cmd_ctx *ctx)
+cmd_get_default_path(struct cmd_ctx *ctx, const char *cwd)
 {
-	const char		*cwd;
 	struct session		*s;
-	struct window_pane	*wp;
 	struct environ_entry	*envent;
+	const char		*root;
+	char			 tmp[MAXPATHLEN];
+	struct passwd		*pw;
+	int			 n;
+	size_t			 skip;
+	static char		 path[MAXPATHLEN];
 
 	if ((s = cmd_current_session(ctx, 0)) == NULL)
 		return (NULL);
 
-	cwd = options_get_string(&s->options, "default-path");
-	if ((cwd[0] == '~' && cwd[1] == '\0') || !strcmp(cwd, "$HOME")) {
-		envent = environ_find(&global_environ, "HOME");
-		if (envent != NULL && *envent->value != '\0')
-			return envent->value;
-		cwd = "";
-	}
-	if (*cwd == '\0') {
-		if (ctx->cmdclient != NULL && ctx->cmdclient->cwd != NULL)
-			return (ctx->cmdclient->cwd);
-		if (ctx->curclient != NULL) {
-			wp = s->curw->window->active;
-			if ((cwd = osdep_get_cwd(wp->pid)) != NULL)
-				return (cwd);
+	if (cwd == NULL)
+		cwd = options_get_string(&s->options, "default-path");
+
+	skip = 1;
+	if (strcmp(cwd, "$HOME") == 0 || strncmp(cwd, "$HOME/", 6) == 0) {
+		/* User's home directory - $HOME. */
+		skip = 5;
+		goto find_home;
+	} else if (cwd[0] == '~' && (cwd[1] == '\0' || cwd[1] == '/')) {
+		/* User's home directory - ~. */
+		goto find_home;
+	} else if (cwd[0] == '-' && (cwd[1] == '\0' || cwd[1] == '/')) {
+		/* Session working directory. */
+		root = s->cwd;
+		goto complete_path;
+	} else if (cwd[0] == '.' && (cwd[1] == '\0' || cwd[1] == '/')){
+		/* Server working directory. */
+		if (getcwd(tmp, sizeof tmp) != NULL) {
+			root = tmp;
+			goto complete_path;
 		}
 		return (s->cwd);
+	} else if (*cwd == '/') {
+		/* Absolute path. */
+		return (cwd);
+	} else {
+		/* Empty or relative path. */
+		if (ctx->cmdclient != NULL && ctx->cmdclient->cwd != NULL)
+			root = ctx->cmdclient->cwd;
+		else if (ctx->curclient != NULL)
+			root = osdep_get_cwd(s->curw->window->active->pid);
+		else
+			return (s->cwd);
+		skip = 0;
+		goto complete_path;
 	}
-	return (cwd);
+
+	return (s->cwd);
+
+find_home:
+	envent = environ_find(&global_environ, "HOME");
+	if (envent != NULL && *envent->value != '\0')
+		root = envent->value;
+	else if ((pw = getpwuid(getuid())) != NULL)
+		root = pw->pw_dir;
+	else
+		return (s->cwd);
+
+complete_path:
+	if (root[skip] == '\0')
+		return (root);
+	n = snprintf(path, sizeof path, "%s/%s", root, cwd + skip);
+	if (n > 0 && (size_t)n < sizeof path)
+		return (path);
+	return (s->cwd);
 }

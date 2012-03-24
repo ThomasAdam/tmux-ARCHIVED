@@ -303,8 +303,8 @@ format_client(struct format_tree *ft, struct client *c)
 	time_t	 t;
 
 	format_add(ft, "client_cwd", "%s", c->cwd);
-	format_add(ft, "client_height", "%u", c->tty.sx);
-	format_add(ft, "client_width", "%u", c->tty.sy);
+	format_add(ft, "client_height", "%u", c->tty.sy);
+	format_add(ft, "client_width", "%u", c->tty.sx);
 	format_add(ft, "client_tty", "%s", c->tty.path);
 	format_add(ft, "client_termname", "%s", c->tty.termname);
 
@@ -341,6 +341,7 @@ format_winlink(struct format_tree *ft, struct session *s, struct winlink *wl)
 	layout = layout_dump(w);
 	flags = window_printable_flags(s, wl);
 
+	format_add(ft, "window_id", "@%u", w->id);
 	format_add(ft, "window_index", "%d", wl->idx);
 	format_add(ft, "window_name", "%s", w->name);
 	format_add(ft, "window_width", "%u", w->sx);
