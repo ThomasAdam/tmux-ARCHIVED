@@ -172,6 +172,8 @@ layout_parse(struct window *w, const char *layout)
 
 	layout_print_cell(lc, __func__, 0);
 
+	notify_window_layout_changed(w);
+
 	return (0);
 
 fail:
@@ -207,7 +209,7 @@ layout_construct(struct layout_cell *lcparent, const char **layout)
 
 	if (!isdigit((u_char) **layout))
 		return (NULL);
-	if (sscanf(*layout, "%ux%u,%u,%u,%*u", &sx, &sy, &xoff, &yoff) != 5 &&
+	if (sscanf(*layout, "%ux%u,%u,%u,%*u", &sx, &sy, &xoff, &yoff) != 4 &&
 	    sscanf(*layout, "%ux%u,%u,%u", &sx, &sy, &xoff, &yoff) != 4)
 		return (NULL);
 
