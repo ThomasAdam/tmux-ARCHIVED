@@ -58,6 +58,7 @@ struct window_pane_tree all_window_panes;
 u_int	next_window_pane_id;
 u_int	next_window_id;
 
+void	window_pane_timer_callback(int, short, void *);
 void	window_pane_read_callback(struct bufferevent *, void *);
 void	window_pane_error_callback(struct bufferevent *, short, void *);
 
@@ -111,7 +112,7 @@ winlink_find_by_window_id(struct winlinks *wwl, u_int id)
 		if (wl->window->id == id)
 			return (wl);
 	}
-	return NULL;
+	return (NULL);
 }
 
 int
@@ -269,7 +270,7 @@ window_find_by_id(u_int id)
 		if (w->id == id)
 			return (w);
 	}
-	return NULL;
+	return (NULL);
 }
 
 struct window *
@@ -288,13 +289,14 @@ window_create1(u_int sx, u_int sy)
 
 	w->lastlayout = -1;
 	w->layout_root = NULL;
+	TAILQ_INIT(&w->layout_list);
 
 	w->sx = sx;
 	w->sy = sy;
 
-	queue_window_name(w);
-
 	options_init(&w->options, &global_w_options);
+	if (options_get_number(&w->options, "automatic-rename"))
+		queue_window_name(w);
 
 	for (i = 0; i < ARRAY_LENGTH(&windows); i++) {
 		if (ARRAY_ITEM(&windows, i) == NULL) {
@@ -347,7 +349,8 @@ window_destroy(struct window *w)
 	if (w->layout_root != NULL)
 		layout_free(w);
 
-	evtimer_del(&w->name_timer);
+	if (event_initialized(&w->name_timer))
+		evtimer_del(&w->name_timer);
 
 	options_free(&w->options);
 
@@ -364,6 +367,7 @@ window_set_name(struct window *w, const char *new_name)
 	if (w->name != NULL)
 		xfree(w->name);
 	w->name = xstrdup(new_name);
+	notify_window_renamed(w);
 }
 
 void
@@ -643,6 +647,9 @@ window_pane_destroy(struct window_pane *wp)
 {
 	window_pane_reset_mode(wp);
 
+	if (event_initialized(&wp->changes_timer))
+		evtimer_del(&wp->changes_timer);
+
 	if (wp->fd != -1) {
 		bufferevent_free(wp->event);
 		close(wp->fd);
@@ -761,6 +768,43 @@ window_pane_spawn(struct window_pane *wp, const char *cmd, const char *shell,
 	bufferevent_enable(wp->event, EV_READ|EV_WRITE);
 
 	return (0);
+}
+
+void
+window_pane_timer_start(struct window_pane *wp)
+{
+	struct timeval	tv;
+
+	tv.tv_sec = 0;
+	tv.tv_usec = 1000;
+
+	evtimer_del(&wp->changes_timer);
+	evtimer_set(&wp->changes_timer, window_pane_timer_callback, wp);
+	evtimer_add(&wp->changes_timer, &tv);
+}
+
+void
+window_pane_timer_callback(unused int fd, unused short events, void *data)
+{
+	struct window_pane	*wp = data;
+	struct window		*w = wp->window;
+	u_int			 interval, trigger;
+
+	interval = options_get_number(&w->options, "c0-change-interval");
+	trigger = options_get_number(&w->options, "c0-change-trigger");
+
+	if (wp->changes_redraw++ == interval) {
+		wp->flags |= PANE_REDRAW;
+		wp->changes_redraw = 0;
+
+	}
+
+	if (trigger == 0 || wp->changes < trigger) {
+		wp->flags |= PANE_REDRAW;
+		wp->flags &= ~PANE_DROP;
+	} else
+		window_pane_timer_start(wp);
+	wp->changes = 0;
 }
 
 /* ARGSUSED */
