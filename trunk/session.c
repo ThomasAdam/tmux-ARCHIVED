@@ -590,3 +590,48 @@ session_group_synchronize1(struct session *target, struct session *s)
 		winlink_remove(&old_windows, wl);
 	}
 }
+
+/* Renumber the windows across winlinks attached to a specific session. */
+int
+session_renumber_windows(struct session *s)
+{
+	struct winlink		*wl, *wl_new;
+	struct winlinks		 old_wins;
+	struct winlink_stack	 old_lastw;
+	int			 new_idx = 0, new_curw_idx = 0;
+
+	if (s == NULL)
+		return (-1);
+
+	memcpy(&old_wins, &s->windows, sizeof old_wins);
+	RB_INIT(&s->windows);
+
+	/* Start renumbering from the base-index if it's set. */
+	new_idx = options_get_number(&s->options, "base-index");
+
+	/* Go through the winlinks and assign new indexes. */
+	RB_FOREACH(wl, winlinks, &old_wins) {
+		wl_new = winlink_add(&s->windows, new_idx);
+		winlink_set_window(wl_new, wl->window);
+		wl_new->flags |= wl->flags & WINLINK_ALERTFLAGS;
+
+		if (wl == s->curw)
+			new_curw_idx = wl_new->idx;
+
+		new_idx++;
+	}
+
+	/* Fix the stack of last windows now that the IDs have changed. */
+	memcpy(&old_lastw, &s->lastw, sizeof old_lastw);
+	TAILQ_INIT(&s->lastw);
+	TAILQ_FOREACH(wl, &old_lastw, sentry) {
+		wl_new = winlink_find_by_index(&s->windows, wl->idx);
+		if (wl_new != NULL)
+			TAILQ_INSERT_TAIL(&s->lastw, wl_new, sentry);
+	}
+
+	/* Set the current window per the new id. */
+	s->curw = winlink_find_by_index(&s->windows, new_curw_idx);
+
+	return (0);
+}
