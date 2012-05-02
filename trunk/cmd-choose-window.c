@@ -73,28 +73,11 @@ cmd_choose_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 
 	cur = idx = 0;
 	RB_FOREACH(wm, winlinks, &s->windows) {
-		w = wm->window;
-
 		if (wm == s->curw)
 			cur = idx;
 		idx++;
 
-		flags = window_printable_flags(s, wm);
-		title = w->active->screen->title;
-		if (wm == wl)
-			title = w->active->base.title;
-		left = " \"";
-		right = "\"";
-		if (*title == '\0')
-			left = right = "";
-
-		window_choose_add(wl->window->active,
-		    wm->idx, "%3d: %s%s [%ux%u] (%u panes%s)%s%s%s",
-		    wm->idx, w->name, flags, w->sx, w->sy, window_count_panes(w),
-		    w->active->fd == -1 ? ", dead" : "",
-		    left, title, right);
-
-		xfree(flags);
+		window_choose_add_window(s, wl->window->active, wm, 0);
 	}
 
 	cdata = xmalloc(sizeof *cdata);

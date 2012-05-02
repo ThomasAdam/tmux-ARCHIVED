@@ -1595,6 +1595,7 @@ extern const struct cmd_entry cmd_capture_pane_entry;
 extern const struct cmd_entry cmd_choose_buffer_entry;
 extern const struct cmd_entry cmd_choose_client_entry;
 extern const struct cmd_entry cmd_choose_session_entry;
+extern const struct cmd_entry cmd_choose_tree_entry;
 extern const struct cmd_entry cmd_choose_window_entry;
 extern const struct cmd_entry cmd_clear_history_entry;
 extern const struct cmd_entry cmd_clock_mode_entry;
@@ -2063,6 +2064,11 @@ void printflike3 window_choose_add(
 		     struct window_pane *, int, const char *, ...);
 void		 window_choose_ready(struct window_pane *,
 		     u_int, void (*)(void *, int), void (*)(void *), void *);
+
+void		 window_choose_add_window(struct session *,
+			struct window_pane *, struct winlink *, int);
+void		 window_choose_add_session(struct session *,
+			struct window_pane *, struct winlink *);
 
 /* names.c */
 void		 queue_window_name(struct window *);

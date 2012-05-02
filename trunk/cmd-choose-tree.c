@@ -23,44 +23,46 @@
 #include "tmux.h"
 
 /*
- * Enter choice mode to choose a session.
+ * Enter choice mode to choose a session and/or window.
  */
 
-int	cmd_choose_session_exec(struct cmd *, struct cmd_ctx *);
+int	cmd_choose_tree_exec(struct cmd *, struct cmd_ctx *);
 
-void	cmd_choose_session_callback(void *, int);
-void	cmd_choose_session_free(void *);
+void	cmd_choose_tree_callback(void *, int);
+void	cmd_choose_tree_free(void *);
 
-const struct cmd_entry cmd_choose_session_entry = {
-	"choose-session", NULL,
+const struct cmd_entry cmd_choose_tree_entry = {
+	"choose-tree", NULL,
 	"t:", 0, 1,
 	CMD_TARGET_WINDOW_USAGE " [template]",
 	0,
 	NULL,
 	NULL,
-	cmd_choose_session_exec
+	cmd_choose_tree_exec
 };
 
-struct cmd_choose_session_data {
+struct cmd_choose_tree_data {
 	struct client	*client;
-	char   		*template;
+	struct session	*session;
+	char   		*window_template;
+	char		*session_template;
 };
 
 int
-cmd_choose_session_exec(struct cmd *self, struct cmd_ctx *ctx)
+cmd_choose_tree_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
 	struct args			*args = self->args;
-	struct cmd_choose_session_data	*cdata;
-	struct winlink			*wl;
-	struct session			*s;
-	struct session_group		*sg;
-	u_int			 	 idx, sgidx, cur;
-	char				 tmp[64];
+	struct cmd_choose_tree_data	*cdata;
+	struct winlink			*wl, *wm;
+	struct session			*s, *s2;
+	u_int				 cur_win, cur_ses, idx_win, idx_ses;
 
 	if (ctx->curclient == NULL) {
 		ctx->error(ctx, "must be run interactively");
 		return (-1);
 	}
+
+	s = ctx->curclient->session;
 
 	if ((wl = cmd_find_window(ctx, args_get(args, 't'), NULL)) == NULL)
 		return (-1);
@@ -68,48 +70,50 @@ cmd_choose_session_exec(struct cmd *self, struct cmd_ctx *ctx)
 	if (window_pane_set_mode(wl->window->active, &window_choose_mode) != 0)
 		return (0);
 
-	cur = idx = 0;
-	RB_FOREACH(s, sessions, &sessions) {
-		if (s == ctx->curclient->session)
-			cur = idx;
-		idx++;
+	RB_FOREACH(s2, sessions, &sessions) {
+		if (s == s2)
+			cur_ses = idx_ses;
+		idx_ses++;
 
-		window_choose_add_session(s, wl->window->active, wl);
+		window_choose_add_session(s2, wl->window->active, wl);
 
+		RB_FOREACH(wm, winlinks, &s2->windows) {
+			window_choose_add_window(s2, wl->window->active, wm, 1);
+		}
 	}
 
+	/* TA:  FIXME - currently broken. */
 	cdata = xmalloc(sizeof *cdata);
-	if (args->argc != 0)
-		cdata->template = xstrdup(args->argv[0]);
-	else
-		cdata->template = xstrdup("switch-client -t '%%'");
+	cdata->session_template = xstrdup("switch-client -t '%%'");
+	cdata->window_template = xstrdup("select-window -t '%%'");
+	
 	cdata->client = ctx->curclient;
 	cdata->client->references++;
+	cdata->session = ctx->curclient->session;
+	cdata->session->references++;
 
 	window_choose_ready(wl->window->active,
-	    cur, cmd_choose_session_callback, cmd_choose_session_free, cdata);
+	    cur_win, cmd_choose_tree_callback, cmd_choose_tree_free, cdata);
 
 	return (0);
 }
 
 void
-cmd_choose_session_callback(void *data, int idx)
+cmd_choose_tree_callback(void *data, int idx)
 {
-	struct cmd_choose_session_data	*cdata = data;
-	struct session			*s;
+	struct cmd_choose_tree_data	*cdata = data;
 	struct cmd_list			*cmdlist;
 	struct cmd_ctx			 ctx;
-	char				*template, *cause;
+	char				*target, *template, *cause;
 
 	if (idx == -1)
 		return;
 	if (cdata->client->flags & CLIENT_DEAD)
 		return;
 
-	s = session_find_by_index(idx);
-	if (s == NULL)
-		return;
-	template = cmd_template_replace(cdata->template, s->name, 1);
+	xasprintf(&target, "%s:%d", cdata->session->name, idx);
+	template = cmd_template_replace(cdata->window_template, target, 1);
+	xfree(target);
 
 	if (cmd_string_parse(template, &cmdlist, &cause) != 0) {
 		if (cause != NULL) {
@@ -136,11 +140,14 @@ cmd_choose_session_callback(void *data, int idx)
 }
 
 void
-cmd_choose_session_free(void *data)
+cmd_choose_tree_free(void *data)
 {
-	struct cmd_choose_session_data	*cdata = data;
+	struct cmd_choose_tree_data	*cdata = data;
 
+	cdata->session->references--;
 	cdata->client->references--;
-	xfree(cdata->template);
+	xfree(cdata->window_template);
+	xfree(cdata->session_template);
 	xfree(cdata);
 }
+

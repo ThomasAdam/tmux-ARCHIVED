@@ -470,3 +470,51 @@ window_choose_scroll_down(struct window_pane *wp)
 		window_choose_write_line(wp, &ctx, screen_size_y(s) - 2);
 	screen_write_stop(&ctx);
 }
+
+void
+window_choose_add_window(struct session *s, struct window_pane *active,
+			 struct winlink *wl, int indent)
+{
+	struct window	*w;
+	char			*flags, *title;
+	const char		*left, *right;
+
+	w = wl->window;
+
+	flags = window_printable_flags(s, wl);
+	title = w->active->screen->title;
+	left = " \"";
+	right = "\"";
+	if (*title == '\0')
+		left = right = "";
+
+	window_choose_add(active,
+		wl->idx, "%s%3d: %s%s [%ux%u] (%u panes%s)%s%s%s",
+		indent ? "	" : "", wl->idx, w->name, flags,
+		w->sx, w->sy, window_count_panes(w),
+		w->active->fd == -1 ? ", dead" : "",
+		left, title, right);
+
+	xfree(flags);
+}
+
+void
+window_choose_add_session(struct session *s, struct window_pane *active, struct winlink *wl)
+{
+	struct session_group	*sg;
+	u_int					 sgidx;
+	char					 tmp[64];
+
+	sg = session_group_find(s);
+	if (sg == NULL)
+		*tmp = '\0';
+	else {
+		sgidx = session_group_index(sg);
+		xsnprintf(tmp, sizeof tmp, " (group %u)", sgidx);
+	}
+
+	window_choose_add(active, s->idx,
+		"%s: %u windows [%ux%u]%s%s", s->name,
+		winlink_count(&s->windows), s->sx, s->sy,
+		tmp, s->flags & SESSION_UNATTACHED ? "" : " (attached)");
+}
