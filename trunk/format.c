@@ -349,6 +349,7 @@ format_winlink(struct format_tree *ft, struct session *s, struct winlink *wl)
 	format_add(ft, "window_flags", "%s", flags);
 	format_add(ft, "window_layout", "%s", layout);
 	format_add(ft, "window_active", "%d", wl == s->curw);
+	format_add(ft, "window_panes", "%u", window_count_panes(w));
 
 	xfree(flags);
 	xfree(layout);
