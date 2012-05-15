@@ -1417,6 +1417,7 @@ void		 format_client(struct format_tree *, struct client *);
 void		 format_winlink(
 		     struct format_tree *, struct session *, struct winlink *);
 void		 format_window_pane(struct format_tree *, struct window_pane *);
+void		 format_paste_buffer(struct format_tree *, struct paste_buffer *);
 
 /* mode-key.c */
 extern const struct mode_key_table mode_key_tables[];

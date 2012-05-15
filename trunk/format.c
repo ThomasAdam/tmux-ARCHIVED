@@ -393,3 +393,14 @@ format_window_pane(struct format_tree *ft, struct window_pane *wp)
 	format_add(ft, "pane_pid", "%ld", (long) wp->pid);
 	format_add(ft, "pane_tty", "%s", wp->tty);
 }
+
+void
+format_paste_buffer(struct format_tree *ft, struct paste_buffer *pb)
+{
+	char	*pb_print = paste_print(pb, 50);
+
+	format_add(ft, "buffer_size", "%zu", pb->size);
+	format_add(ft, "buffer_sample", "%s", pb_print);
+
+	xfree(pb_print);
+}
