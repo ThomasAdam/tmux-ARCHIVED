@@ -93,8 +93,8 @@ extern char   **environ;
 	"#{line}: #{buffer_size} bytes: \"#{buffer_sample}\""
 #define DEFAULT_CLIENT_TEMPLATE					\
 	"#{client_tty}: #{session_name} "			\
-	"[#client_width}x#{client_height} #{client_termname}]"	\
-	"{?client_utf8, (utf8),} #{?client_readonly, (ro),}"
+	"[#{client_width}x#{client_height} #{client_termname}]"	\
+	"#{?client_utf8, (utf8),} #{?client_readonly, (ro),}"
 #define DEFAULT_DISPLAY_MESSAGE_TEMPLATE			\
 	"[#{session_name}] #{window_index}:"			\
 	"#{window_name}, current pane #{pane_index} "		\
@@ -113,9 +113,7 @@ extern char   **environ;
 #define DEFAULT_WINDOW_TEMPLATE					\
 	"#{window_index}: #{window_name}#{window_flags} "	\
 	"(#{window_panes} panes) "				\
-	"[#{window_width}x#{window_height}] "			\
-	"[layout #{window_layout}] #{window_id}"		\
-	"#{?window_active, (active),}"
+	"[#{window_width}x#{window_height}]"
 #define DEFAULT_PANE_INFO_TEMPLATE				\
 	"#{session_name}:#{window_index}.#{pane_index}"
 
@@ -1858,6 +1856,7 @@ int	 attributes_fromstring(const char *);
 
 /* grid.c */
 extern const struct grid_cell grid_default_cell;
+extern const struct grid_cell grid_marker_cell;
 struct grid *grid_create(u_int, u_int, u_int);
 void	 grid_destroy(struct grid *);
 int	 grid_compare(struct grid *, struct grid *);
@@ -2177,8 +2176,7 @@ char		*osdep_get_cwd(pid_t);
 struct event_base *osdep_event_init(void);
 
 /* log.c */
-void		 log_open_tty(int);
-void		 log_open_file(int, const char *);
+void		 log_open(int, const char *);
 void		 log_close(void);
 void printflike1 log_warn(const char *, ...);
 void printflike1 log_warnx(const char *, ...);
