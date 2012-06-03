@@ -30,8 +30,8 @@
 int	cmd_find_window_exec(struct cmd *, struct cmd_ctx *);
 
 u_int	cmd_find_window_match_flags(struct args *);
-void	cmd_find_window_callback(void *, int);
-void	cmd_find_window_free(void *);
+void	cmd_find_window_callback(struct window_choose_data *);
+void	cmd_find_window_free(struct window_choose_data *);
 
 /* Flags for determining matching behavior. */
 #define CMD_FIND_WINDOW_BY_TITLE   0x1
@@ -52,10 +52,6 @@ const struct cmd_entry cmd_find_window_entry = {
 	NULL,
 	NULL,
 	cmd_find_window_exec
-};
-
-struct cmd_find_window_data {
-	struct session	*session;
 };
 
 u_int
@@ -82,15 +78,13 @@ int
 cmd_find_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
 	struct args			*args = self->args;
-	struct cmd_find_window_data	*cdata;
+	struct window_choose_data	*cdata;
 	struct session			*s;
 	struct winlink			*wl, *wm;
 	struct window_pane		*wp;
-	struct format_tree		*ft;
 	ARRAY_DECL(, u_int)	 	 list_idx;
 	ARRAY_DECL(, char *)	 	 list_ctx;
 	char				*str, *sres, *sctx, *searchstr;
-	char				*find_line;
 	const char			*template;
 	u_int				 i, line, match_flags;
 
@@ -173,29 +167,25 @@ cmd_find_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 		wm = winlink_find_by_index(
 		    &s->windows, ARRAY_ITEM(&list_idx, i));
 
-		ft = format_create();
-		format_add(ft, "line", "%u", i);
-		format_add(ft, "window_find_matches", "%s",
+		cdata = window_choose_data_create(ctx);
+		cdata->idx = wm->idx;
+		cdata->client->references++;
+
+		cdata->ft_template = xstrdup(template);
+		format_add(cdata->ft, "line", "%u", i);
+		format_add(cdata->ft, "window_find_matches", "%s",
 			ARRAY_ITEM(&list_ctx, i));
-		format_session(ft, s);
-		format_winlink(ft, s, wm);
+		format_session(cdata->ft, s);
+		format_winlink(cdata->ft, s, wm);
 
-		find_line = format_expand(ft, template);
-
-		window_choose_add(wl->window->active, wm->idx, "%s", find_line);
-
-		xfree(find_line);
-		format_free(ft);
+		window_choose_add(wl->window->active, cdata);
 	}
 
-	cdata = xmalloc(sizeof *cdata);
-	cdata->session = s;
-	cdata->session->references++;
-
 	window_choose_ready(wl->window->active,
-	    0, cmd_find_window_callback, cmd_find_window_free, cdata);
+	    0, cmd_find_window_callback, cmd_find_window_free);
 
 out:
+
 	ARRAY_FREE(&list_idx);
 	ARRAY_FREE(&list_ctx);
 
@@ -203,15 +193,17 @@ out:
 }
 
 void
-cmd_find_window_callback(void *data, int idx)
+cmd_find_window_callback(struct window_choose_data *cdata)
 {
-	struct cmd_find_window_data	*cdata = data;
 	struct session			*s = cdata->session;
+	u_int				 idx;
 
-	if (idx == -1)
+	if (cdata == NULL)
 		return;
 	if (!session_alive(s))
 		return;
+
+	idx = cdata->idx;
 
 	if (session_select(s, idx) == 0) {
 		server_redraw_session(s);
@@ -220,10 +212,14 @@ cmd_find_window_callback(void *data, int idx)
 }
 
 void
-cmd_find_window_free(void *data)
+cmd_find_window_free(struct window_choose_data *cdata)
 {
-	struct cmd_find_window_data	*cdata = data;
+	if (cdata == NULL)
+		return;
 
 	cdata->session->references--;
+
+	xfree(cdata->ft_template);
+	format_free(cdata->ft);
 	xfree(cdata);
 }
