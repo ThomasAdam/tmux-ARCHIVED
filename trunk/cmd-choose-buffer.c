@@ -41,11 +41,6 @@ const struct cmd_entry cmd_choose_buffer_entry = {
 	cmd_choose_buffer_exec
 };
 
-struct cmd_choose_buffer_data {
-	struct client   *client;
-	char            *template;
-};
-
 int
 cmd_choose_buffer_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
