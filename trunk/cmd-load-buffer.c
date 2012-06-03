@@ -134,8 +134,7 @@ cmd_load_buffer_exec(struct cmd *self, struct cmd_ctx *ctx)
 	return (0);
 
 error:
-	if (pdata != NULL)
-		xfree(pdata);
+	xfree(pdata);
 	if (f != NULL)
 		fclose(f);
 	return (-1);

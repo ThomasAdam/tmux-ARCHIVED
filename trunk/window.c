@@ -176,8 +176,7 @@ winlink_remove(struct winlinks *wwl, struct winlink *wl)
 	struct window	*w = wl->window;
 
 	RB_REMOVE(winlinks, wwl, wl);
-	if (wl->status_text != NULL)
-		xfree(wl->status_text);
+	xfree(wl->status_text);
 	xfree(wl);
 
 	if (w != NULL) {
@@ -356,16 +355,14 @@ window_destroy(struct window *w)
 
 	window_destroy_panes(w);
 
-	if (w->name != NULL)
-		xfree(w->name);
+	xfree(w->name);
 	xfree(w);
 }
 
 void
 window_set_name(struct window *w, const char *new_name)
 {
-	if (w->name != NULL)
-		xfree(w->name);
+	xfree(w->name);
 	w->name = xstrdup(new_name);
 	notify_window_renamed(w);
 }
@@ -668,12 +665,9 @@ window_pane_destroy(struct window_pane *wp)
 
 	RB_REMOVE(window_pane_tree, &all_window_panes, wp);
 
-	if (wp->cwd != NULL)
-		xfree(wp->cwd);
-	if (wp->shell != NULL)
-		xfree(wp->shell);
-	if (wp->cmd != NULL)
-		xfree(wp->cmd);
+	xfree(wp->cwd);
+	xfree(wp->shell);
+	xfree(wp->cmd);
 	xfree(wp);
 }
 
@@ -691,18 +685,15 @@ window_pane_spawn(struct window_pane *wp, const char *cmd, const char *shell,
 		close(wp->fd);
 	}
 	if (cmd != NULL) {
-		if (wp->cmd != NULL)
-			xfree(wp->cmd);
+		xfree(wp->cmd);
 		wp->cmd = xstrdup(cmd);
 	}
 	if (shell != NULL) {
-		if (wp->shell != NULL)
-			xfree(wp->shell);
+		xfree(wp->shell);
 		wp->shell = xstrdup(shell);
 	}
 	if (cwd != NULL) {
-		if (wp->cwd != NULL)
-			xfree(wp->cwd);
+		xfree(wp->cwd);
 		wp->cwd = xstrdup(cwd);
 	}
 

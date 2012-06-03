@@ -205,11 +205,8 @@ cmd_command_prompt_free(void *data)
 {
 	struct cmd_command_prompt_cdata	*cdata = data;
 
-	if (cdata->inputs != NULL)
-		xfree(cdata->inputs);
-	if (cdata->prompts != NULL)
-		xfree(cdata->prompts);
-	if (cdata->template != NULL)
-		xfree(cdata->template);
+	xfree(cdata->inputs);
+	xfree(cdata->prompts);
+	xfree(cdata->template);
 	xfree(cdata);
 }

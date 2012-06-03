@@ -240,8 +240,7 @@ window_copy_free(struct window_pane *wp)
 	if (wp->fd != -1)
 		bufferevent_enable(wp->event, EV_READ|EV_WRITE);
 
-	if (data->searchstr != NULL)
-		xfree(data->searchstr);
+	xfree(data->searchstr);
 	xfree(data->inputstr);
 
 	if (data->backing != &wp->base) {

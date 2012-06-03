@@ -299,8 +299,7 @@ tty_term_override(struct tty_term *term, const char *overrides)
 				}
 			}
 
-			if (val != NULL)
-				xfree(val);
+			xfree(val);
 		}
 	}
 

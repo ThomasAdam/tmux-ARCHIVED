@@ -115,8 +115,7 @@ cmd_if_shell_free(void *data)
 	if (ctx->curclient != NULL)
 		ctx->curclient->references--;
 
-	if (cdata->cmd_else != NULL)
-		xfree(cdata->cmd_else);
+	xfree(cdata->cmd_else);
 	xfree(cdata->cmd_if);
 	xfree(cdata);
 }

@@ -85,8 +85,6 @@ xrealloc(void *oldptr, size_t nmemb, size_t size)
 void
 xfree(void *ptr)
 {
-	if (ptr == NULL)
-		fatalx("null pointer");
 	free(ptr);
 }
 

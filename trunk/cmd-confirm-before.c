@@ -144,7 +144,6 @@ cmd_confirm_before_free(void *data)
 {
 	struct cmd_confirm_before_data	*cdata = data;
 
-	if (cdata->cmd != NULL)
-		xfree(cdata->cmd);
+	xfree(cdata->cmd);
 	xfree(cdata);
 }

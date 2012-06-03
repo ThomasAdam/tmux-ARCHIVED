@@ -109,8 +109,7 @@
 } while (0)
 
 #define ARRAY_FREE(a) do {						\
-	if ((a)->list != NULL)						\
-		xfree((a)->list);					\
+	xfree((a)->list);						\
 	ARRAY_INIT(a);							\
 } while (0)
 #define ARRAY_FREEALL(a) do {						\

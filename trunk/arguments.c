@@ -75,8 +75,7 @@ args_parse(const char *template, int argc, char **argv)
 
 		bit_set(args->flags, opt);
 		if (ptr[1] == ':') {
-			if (args->values[opt] != NULL)
-				xfree(args->values[opt]);
+			xfree(args->values[opt]);
 			args->values[opt] = xstrdup(optarg);
 		}
 	}
@@ -97,10 +96,8 @@ args_free(struct args *args)
 
 	cmd_free_argv(args->argc, args->argv);
 
-	for (i = 0; i < SCHAR_MAX; i++) {
-		if (args->values[i] != NULL)
-			xfree(args->values[i]);
-	}
+	for (i = 0; i < SCHAR_MAX; i++)
+		xfree(args->values[i]);
 
 	xfree(args->flags);
 	xfree(args);
@@ -182,8 +179,7 @@ args_has(struct args *args, u_char ch)
 void
 args_set(struct args *args, u_char ch, const char *value)
 {
-	if (args->values[ch] != NULL)
-		xfree(args->values[ch]);
+	xfree(args->values[ch]);
 	if (value != NULL)
 		args->values[ch] = xstrdup(value);
 	else
