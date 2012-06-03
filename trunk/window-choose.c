@@ -53,13 +53,12 @@ struct window_choose_mode_data {
 
 	struct mode_key_data	mdata;
 
-	ARRAY_DECL(, struct window_choose_mode_item) list;
+	ARRAY_DECL(, struct window_choose_item) list;
 	u_int			top;
 	u_int			selected;
 
 	void 			(*callbackfn)(void *, int);
 	void			(*freefn)(void *);
-	void		       *data;
 };
 
 int	window_choose_key_index(struct window_choose_mode_data *, u_int);
@@ -68,23 +67,21 @@ int	window_choose_index_key(struct window_choose_mode_data *, int);
 void
 window_choose_vadd(struct window_pane *wp, int idx, const char *fmt, va_list ap)
 {
+	xvasprintf(&item->name, fmt, ap);
+	item->idx = idx;
+}
+
+void
+window_choose_add(struct window_pane *wp, struct window_choose_data *wcd)
+{
 	struct window_choose_mode_data	*data = wp->modedata;
 	struct window_choose_mode_item	*item;
 
 	ARRAY_EXPAND(&data->list, 1);
 	item = &ARRAY_LAST(&data->list);
-	xvasprintf(&item->name, fmt, ap);
-	item->idx = idx;
-}
 
-void printflike3
-window_choose_add(struct window_pane *wp, int idx, const char *fmt, ...)
-{
-	va_list	ap;
-
-	va_start(ap, fmt);
-	window_choose_vadd(wp, idx, fmt, ap);
-	va_end(ap);
+	item->name = format_expand(data->ft, data->ft_template);
+	item->wcd = wcd;
 }
 
 void

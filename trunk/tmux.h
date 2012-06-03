@@ -842,6 +842,22 @@ struct window_mode {
 	void	(*timer)(struct window_pane *);
 };
 
+/* Structures for choose mode. */
+struct window_choose_data {
+	struct client		*client;
+	struct session		*session;
+	struct format_tree	*ft;
+	char		        *ft_template;
+	char			*raw_format;
+	char			*action;
+	u_int			 idx;
+};
+
+struct window_choose_mode_item {
+    struct window_choose_data   *wcd;
+    char                        *name;
+};
+
 /* Child window structure. */
 struct window_pane {
 	u_int		 id;
@@ -2117,8 +2133,8 @@ void		 window_copy_pageup(struct window_pane *);
 extern const struct window_mode window_choose_mode;
 void		 window_choose_vadd(
 		     struct window_pane *, int, const char *, va_list);
-void printflike3 window_choose_add(
-		     struct window_pane *, int, const char *, ...);
+void		 window_choose_add(struct window_pane *,
+			 struct window_choose_data *);
 void		 window_choose_ready(struct window_pane *,
 		     u_int, void (*)(void *, int), void (*)(void *), void *);
 
