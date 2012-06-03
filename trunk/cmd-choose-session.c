@@ -41,16 +41,11 @@ const struct cmd_entry cmd_choose_session_entry = {
 	cmd_choose_session_exec
 };
 
-struct cmd_choose_session_data {
-	struct client	*client;
-	char   		*template;
-};
-
 int
 cmd_choose_session_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
 	struct args			*args = self->args;
-	struct cmd_choose_session_data	*cdata;
+	struct window_choose_data	*cdata;
 	struct winlink			*wl;
 	struct session			*s;
 	struct format_tree		*ft;
@@ -106,11 +101,8 @@ cmd_choose_session_exec(struct cmd *self, struct cmd_ctx *ctx)
 void
 cmd_choose_session_callback(void *data, int idx)
 {
-	struct cmd_choose_session_data	*cdata = data;
+	struct window_choose_data	*cdata = data;
 	struct session			*s;
-	struct cmd_list			*cmdlist;
-	struct cmd_ctx			 ctx;
-	char				*template, *cause;
 
 	if (idx == -1)
 		return;
@@ -120,38 +112,18 @@ cmd_choose_session_callback(void *data, int idx)
 	s = session_find_by_index(idx);
 	if (s == NULL)
 		return;
-	template = cmd_template_replace(cdata->template, s->name, 1);
 
-	if (cmd_string_parse(template, &cmdlist, &cause) != 0) {
-		if (cause != NULL) {
-			*cause = toupper((u_char) *cause);
-			status_message_set(cdata->client, "%s", cause);
-			xfree(cause);
-		}
-		xfree(template);
-		return;
-	}
-	xfree(template);
-
-	ctx.msgdata = NULL;
-	ctx.curclient = cdata->client;
-
-	ctx.error = key_bindings_error;
-	ctx.print = key_bindings_print;
-	ctx.info = key_bindings_info;
-
-	ctx.cmdclient = NULL;
-
-	cmd_list_exec(cmdlist, &ctx);
-	cmd_list_free(cmdlist);
+	cdata->raw_format = xstrdup(s->name);
+	window_choose_ctx(cdata);
 }
 
 void
 cmd_choose_session_free(void *data)
 {
-	struct cmd_choose_session_data	*cdata = data;
+	struct window_choose_data	*cdata = data;
 
 	cdata->client->references--;
 	xfree(cdata->template);
+	xfree(cdata->raw_format);
 	xfree(cdata);
 }
