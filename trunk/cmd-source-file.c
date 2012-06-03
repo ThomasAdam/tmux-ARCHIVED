@@ -59,13 +59,13 @@ cmd_source_file_exec(struct cmd *self, struct cmd_ctx *ctx)
 		for (i = 0; i < ARRAY_LENGTH(&causes); i++) {
 			cause = ARRAY_ITEM(&causes, i);
 			window_copy_add(wp, "%s", cause);
-			xfree(cause);
+			free(cause);
 		}
 	} else {
 		for (i = 0; i < ARRAY_LENGTH(&causes); i++) {
 			cause = ARRAY_ITEM(&causes, i);
 			ctx->print(ctx, "%s", cause);
-			xfree(cause);
+			free(cause);
 		}
 	}
 	ARRAY_FREE(&causes);

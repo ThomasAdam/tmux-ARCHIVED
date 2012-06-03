@@ -138,7 +138,7 @@ cmd_command_prompt_exec(struct cmd *self, struct cmd_ctx *ctx)
 
 	status_prompt_set(c, prompt, input, cmd_command_prompt_callback,
 	    cmd_command_prompt_free, cdata, 0);
-	xfree(prompt);
+	free(prompt);
 
 	return (0);
 }
@@ -157,7 +157,7 @@ cmd_command_prompt_callback(void *data, const char *s)
 		return (0);
 
 	new_template = cmd_template_replace(cdata->template, s, cdata->idx);
-	xfree(cdata->template);
+	free(cdata->template);
 	cdata->template = new_template;
 
 	/*
@@ -169,7 +169,7 @@ cmd_command_prompt_callback(void *data, const char *s)
 		input = strsep(&cdata->next_input, ",");
 		status_prompt_update(c, prompt, input);
 
-		xfree(prompt);
+		free(prompt);
 		cdata->idx++;
 		return (1);
 	}
@@ -178,7 +178,7 @@ cmd_command_prompt_callback(void *data, const char *s)
 		if (cause != NULL) {
 			*cause = toupper((u_char) *cause);
 			status_message_set(c, "%s", cause);
-			xfree(cause);
+			free(cause);
 		}
 		return (0);
 	}
@@ -205,11 +205,8 @@ cmd_command_prompt_free(void *data)
 {
 	struct cmd_command_prompt_cdata	*cdata = data;
 
-	if (cdata->inputs != NULL)
-		xfree(cdata->inputs);
-	if (cdata->prompts != NULL)
-		xfree(cdata->prompts);
-	if (cdata->template != NULL)
-		xfree(cdata->template);
-	xfree(cdata);
+	free(cdata->inputs);
+	free(cdata->prompts);
+	free(cdata->template);
+	free(cdata);
 }

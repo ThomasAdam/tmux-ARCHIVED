@@ -79,7 +79,7 @@ cmd_respawn_pane_exec(struct cmd *self, struct cmd_ctx *ctx)
 		cmd = NULL;
 	if (window_pane_spawn(wp, cmd, NULL, NULL, &env, s->tio, &cause) != 0) {
 		ctx->error(ctx, "respawn pane failed: %s", cause);
-		xfree(cause);
+		free(cause);
 		environ_free(&env);
 		return (-1);
 	}

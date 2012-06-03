@@ -206,7 +206,7 @@ server_window_check_content(
 		return (0);
 	if ((found = window_pane_search(wp, ptr, NULL)) == NULL)
 		return (0);
-	xfree(found);
+	free(found);
 
 	if (options_get_number(&s->options, "bell-on-alert"))
 		ring_bell(s);

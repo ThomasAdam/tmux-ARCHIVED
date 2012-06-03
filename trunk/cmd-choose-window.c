@@ -80,7 +80,7 @@ cmd_choose_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 		window_choose_add_window(wl->window->active, ctx, s, wm,
 		    template, action, idx);
 	}
-	xfree(action);
+	free(action);
 
 	window_choose_ready(wl->window->active,
 	    cur, cmd_choose_window_callback, cmd_choose_window_free);
@@ -114,8 +114,8 @@ cmd_choose_window_free(struct window_choose_data *cdata)
 	cdata->session->references--;
 	cdata->client->references--;
 
-	xfree(cdata->ft_template);
-	xfree(cdata->command);
+	free(cdata->ft_template);
+	free(cdata->command);
 	format_free(cdata->ft);
-	xfree(cdata);
+	free(cdata);
 }

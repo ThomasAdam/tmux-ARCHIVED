@@ -81,7 +81,7 @@ cmd_respawn_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 		cmd = NULL;
 	if (window_pane_spawn(wp, cmd, NULL, NULL, &env, s->tio, &cause) != 0) {
 		ctx->error(ctx, "respawn window failed: %s", cause);
-		xfree(cause);
+		free(cause);
 		environ_free(&env);
 		server_destroy_pane(wp);
 		return (-1);

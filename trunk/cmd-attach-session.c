@@ -81,7 +81,7 @@ cmd_attach_session_exec(struct cmd *self, struct cmd_ctx *ctx)
 	} else {
 		if (server_client_open(ctx->cmdclient, s, &cause) != 0) {
 			ctx->error(ctx, "open terminal failed: %s", cause);
-			xfree(cause);
+			free(cause);
 			return (-1);
 		}
 

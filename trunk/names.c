@@ -73,12 +73,12 @@ window_name_callback(unused int fd, unused short events, void *data)
 			wname = parse_window_name(name + 1);
 		else
 				wname = parse_window_name(name);
-		xfree(name);
+		free(name);
 	}
 
 	if (w->active->fd == -1) {
 		xasprintf(&name, "%s[dead]", wname);
-		xfree(wname);
+		free(wname);
 		wname = name;
 	}
 
@@ -86,7 +86,7 @@ window_name_callback(unused int fd, unused short events, void *data)
 		window_set_name(w, wname);
 		server_status_window(w);
 	}
-	xfree(wname);
+	free(wname);
 }
 
 char *
@@ -122,6 +122,6 @@ parse_window_name(const char *in)
 	if (*name == '/')
 		name = basename(name);
 	name = xstrdup(name);
-	xfree(copy);
+	free(copy);
 	return (name);
 }

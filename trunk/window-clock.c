@@ -69,7 +69,7 @@ window_clock_free(struct window_pane *wp)
 	struct window_clock_mode_data	*data = wp->modedata;
 
 	screen_free(&data->screen);
-	xfree(data);
+	free(data);
 }
 
 void

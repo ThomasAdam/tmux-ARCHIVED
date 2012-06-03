@@ -103,7 +103,7 @@ cmd_list_windows_session(
 
 		line = format_expand(ft, template);
 		ctx->print(ctx, "%s", line);
-		xfree(line);
+		free(line);
 
 		format_free(ft);
 		n++;

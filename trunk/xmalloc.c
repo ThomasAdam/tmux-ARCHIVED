@@ -20,7 +20,6 @@
 
 #include <errno.h>
 #include <libgen.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "tmux.h"
@@ -80,14 +79,6 @@ xrealloc(void *oldptr, size_t nmemb, size_t size)
 		fatal("xrealloc failed");
 
 	return (newptr);
-}
-
-void
-xfree(void *ptr)
-{
-	if (ptr == NULL)
-		fatalx("null pointer");
-	free(ptr);
 }
 
 int printflike2

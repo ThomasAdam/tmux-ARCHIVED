@@ -69,8 +69,8 @@ paste_free_top(struct paste_stack *ps)
 	pb = ARRAY_FIRST(ps);
 	ARRAY_REMOVE(ps, 0);
 
-	xfree(pb->data);
-	xfree(pb);
+	free(pb->data);
+	free(pb);
 
 	return (0);
 }
@@ -87,8 +87,8 @@ paste_free_index(struct paste_stack *ps, u_int idx)
 	pb = ARRAY_ITEM(ps, idx);
 	ARRAY_REMOVE(ps, idx);
 
-	xfree(pb->data);
-	xfree(pb);
+	free(pb->data);
+	free(pb);
 
 	return (0);
 }
@@ -107,8 +107,8 @@ paste_add(struct paste_stack *ps, char *data, size_t size, u_int limit)
 
 	while (ARRAY_LENGTH(ps) >= limit) {
 		pb = ARRAY_LAST(ps);
-		xfree(pb->data);
-		xfree(pb);
+		free(pb->data);
+		free(pb);
 		ARRAY_TRUNC(ps, 1);
 	}
 
@@ -136,7 +136,7 @@ paste_replace(struct paste_stack *ps, u_int idx, char *data, size_t size)
 		return (-1);
 
 	pb = ARRAY_ITEM(ps, idx);
-	xfree(pb->data);
+	free(pb->data);
 
 	pb->data = data;
 	pb->size = size;

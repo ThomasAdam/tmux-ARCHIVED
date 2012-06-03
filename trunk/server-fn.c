@@ -393,7 +393,7 @@ server_destroy_session_group(struct session *s)
 		TAILQ_FOREACH(s, &sg->sessions, gentry)
 			server_destroy_session(s);
 		TAILQ_REMOVE(&session_groups, sg, entry);
-		xfree(sg);
+		free(sg);
 	}
 }
 

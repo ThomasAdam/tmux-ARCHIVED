@@ -60,7 +60,7 @@ cmd_list_buffers_exec(unused struct cmd *self, struct cmd_ctx *ctx)
 
 		line = format_expand(ft, template);
 		ctx->print(ctx, "%s", line);
-		xfree(line);
+		free(line);
 
 		format_free(ft);
 	}

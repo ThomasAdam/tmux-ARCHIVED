@@ -139,7 +139,7 @@ cmd_list_free(struct cmd_list *cmdlist)
 		TAILQ_REMOVE(&cmdlist->list, cmd, qentry);
 		cmd_free(cmd);
 	}
-	xfree(cmdlist);
+	free(cmdlist);
 }
 
 size_t

@@ -101,7 +101,7 @@ cmd_run_shell_callback(struct job *job)
 		ctx->print(ctx, "%s", line);
 		lines++;
 
-		xfree(line);
+		free(line);
 	}
 
 	cmd = cdata->cmd;
@@ -119,7 +119,7 @@ cmd_run_shell_callback(struct job *job)
 			ctx->print(ctx, "%s", msg);
 		else
 			ctx->info(ctx, "%s", msg);
-		xfree(msg);
+		free(msg);
 	}
 }
 
@@ -136,6 +136,6 @@ cmd_run_shell_free(void *data)
 	if (ctx->curclient != NULL)
 		ctx->curclient->references--;
 
-	xfree(cdata->cmd);
-	xfree(cdata);
+	free(cdata->cmd);
+	free(cdata);
 }

@@ -110,12 +110,12 @@ control_callback(struct client *c, int closed, unused void *data)
 		if (cmd_string_parse(line, &cmdlist, &cause) != 0) {
 			control_write(c, "%%error in line \"%s\": %s", line,
 			    cause);
-			xfree(cause);
+			free(cause);
 		} else {
 			cmd_list_exec(cmdlist, &ctx);
 			cmd_list_free(cmdlist);
 		}
 
-		xfree(line);
+		free(line);
 	}
 }

@@ -59,7 +59,7 @@ cmd_show_buffer_exec(struct cmd *self, struct cmd_ctx *ctx)
 		buffer = args_strtonum(args, 'b', 0, INT_MAX, &cause);
 		if (cause != NULL) {
 			ctx->error(ctx, "buffer %s", cause);
-			xfree(cause);
+			free(cause);
 			return (-1);
 		}
 
@@ -101,9 +101,9 @@ cmd_show_buffer_exec(struct cmd *self, struct cmd_ctx *ctx)
 		buf[len] = '\0';
 		ctx->print(ctx, "%s", buf);
 	}
-	xfree(buf);
+	free(buf);
 
-	xfree(in);
+	free(in);
 
 	return (0);
 }

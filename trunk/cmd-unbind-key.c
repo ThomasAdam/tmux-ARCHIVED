@@ -100,7 +100,7 @@ cmd_unbind_key_table(struct cmd *self, struct cmd_ctx *ctx, int key)
 		while (!RB_EMPTY(mtab->tree)) {
 			mbind = RB_ROOT(mtab->tree);
 			RB_REMOVE(mode_key_tree, mtab->tree, mbind);
-			xfree(mbind);
+			free(mbind);
 		}
 		return (0);
 	}
@@ -109,7 +109,7 @@ cmd_unbind_key_table(struct cmd *self, struct cmd_ctx *ctx, int key)
 	mtmp.mode = !!args_has(args, 'c');
 	if ((mbind = RB_FIND(mode_key_tree, mtab->tree, &mtmp)) != NULL) {
 		RB_REMOVE(mode_key_tree, mtab->tree, mbind);
-		xfree(mbind);
+		free(mbind);
 	}
 	return (0);
 }

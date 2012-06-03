@@ -79,7 +79,7 @@ cmd_choose_session_exec(struct cmd *self, struct cmd_ctx *ctx)
 		window_choose_add_session(wl->window->active,
 		    ctx, s, template, action, idx);
 	}
-	xfree(action);
+	free(action);
 
 	window_choose_ready(wl->window->active,
 	    cur, cmd_choose_session_callback, cmd_choose_session_free);
@@ -107,8 +107,8 @@ cmd_choose_session_free(struct window_choose_data *cdata)
 	cdata->client->references--;
 	cdata->session->references--;
 
-	xfree(cdata->command);
-	xfree(cdata->ft_template);
+	free(cdata->command);
+	free(cdata->ft_template);
 	format_free(cdata->ft);
-	xfree(cdata);
+	free(cdata);
 }
