@@ -53,23 +53,16 @@ struct window_choose_mode_data {
 
 	struct mode_key_data	mdata;
 
-	ARRAY_DECL(, struct window_choose_item) list;
+	ARRAY_DECL(, struct window_choose_mode_item) list;
 	u_int			top;
 	u_int			selected;
 
-	void 			(*callbackfn)(void *, int);
-	void			(*freefn)(void *);
+	void 			(*callbackfn)(struct window_choose_data *);
+	void			(*freefn)(struct window_choose_data *);
 };
 
 int	window_choose_key_index(struct window_choose_mode_data *, u_int);
 int	window_choose_index_key(struct window_choose_mode_data *, int);
-
-void
-window_choose_vadd(struct window_pane *wp, int idx, const char *fmt, va_list ap)
-{
-	xvasprintf(&item->name, fmt, ap);
-	item->idx = idx;
-}
 
 void
 window_choose_add(struct window_pane *wp, struct window_choose_data *wcd)
