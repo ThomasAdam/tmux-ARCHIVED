@@ -20,6 +20,8 @@
 
 #include <string.h>
 
+#include <ctype.h>
+
 #include "tmux.h"
 
 struct screen *window_choose_init(struct window_pane *);
@@ -469,4 +471,37 @@ window_choose_scroll_down(struct window_pane *wp)
 	if (screen_size_y(&data->screen) > 1)
 		window_choose_write_line(wp, &ctx, screen_size_y(s) - 2);
 	screen_write_stop(&ctx);
+}
+
+void
+window_choose_ctx(struct window_choose_data *cdata)
+{
+	struct cmd_ctx		 ctx;
+	struct cmd_list		*cmdlist;
+	char			*template, *cause;
+
+	template = cmd_template_replace(cdata->template, cdata->raw_format, 1);
+
+	if (cmd_string_parse(template, &cmdlist, &cause) != 0) {
+		if (cause != NULL) {
+			*cause = toupper((u_char) *cause);
+			status_message_set(cdata->client, "%s", cause);
+			xfree(cause);
+		}
+		xfree(template);
+		return;
+	}
+	xfree(template);
+
+	ctx.msgdata = NULL;
+	ctx.curclient = cdata->client;
+
+	ctx.error = key_bindings_error;
+	ctx.print = key_bindings_print;
+	ctx.info = key_bindings_info;
+
+	ctx.cmdclient = NULL;
+
+	cmd_list_exec(cmdlist, &ctx);
+	cmd_list_free(cmdlist);
 }
