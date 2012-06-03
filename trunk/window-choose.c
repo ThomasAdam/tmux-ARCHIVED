@@ -48,11 +48,6 @@ const struct window_mode window_choose_mode = {
 	NULL,
 };
 
-struct window_choose_mode_item {
-	char		       *name;
-	int			idx;
-};
-
 struct window_choose_mode_data {
 	struct screen	        screen;
 
