@@ -28,8 +28,8 @@
 
 int	cmd_choose_window_exec(struct cmd *, struct cmd_ctx *);
 
-void	cmd_choose_window_callback(void *, int);
-void	cmd_choose_window_free(void *);
+void	cmd_choose_window_callback(struct window_choose_data *);
+void	cmd_choose_window_free(struct window_choose_data *);
 
 const struct cmd_entry cmd_choose_window_entry = {
 	"choose-window", NULL,
@@ -48,9 +48,7 @@ cmd_choose_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 	struct window_choose_data	*cdata;
 	struct session			*s;
 	struct winlink			*wl, *wm;
-	struct format_tree		*ft;
 	const char			*template;
-	char				*line;
 	u_int			 	 idx, cur;
 
 	if (ctx->curclient == NULL) {
@@ -74,60 +72,63 @@ cmd_choose_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 			cur = idx;
 		idx++;
 
-		ft = format_create();
-		format_add(ft, "line", "%u", idx);
-		format_session(ft, s);
-		format_winlink(ft, s, wm);
-		format_window_pane(ft, wm->window->active);
+		cdata = window_choose_data_create(ctx);
+		if (args->argc != 0)
+			cdata->action = xstrdup(args->argv[0]);
+		else
+			cdata->action = xstrdup("select-window -t '%%'");
 
-		line = format_expand(ft, template);
-		window_choose_add(wl->window->active, wm->idx, "%s", line);
+		cdata->idx = wm->idx;
+		cdata->client->references++;
+		cdata->session->references++;
 
-		xfree(line);
-		format_free(ft);
+		cdata->ft_template = xstrdup(template);
+		format_add(cdata->ft, "line", "%u", idx);
+		format_session(cdata->ft, s);
+		format_winlink(cdata->ft, s, wm);
+		format_window_pane(cdata->ft, wm->window->active);
+
+		window_choose_add(wl->window->active, cdata);
 	}
 
-	cdata = xmalloc(sizeof *cdata);
-	if (args->argc != 0)
-		cdata->template = xstrdup(args->argv[0]);
-	else
-		cdata->template = xstrdup("select-window -t '%%'");
-	cdata->session = s;
-	cdata->session->references++;
-	cdata->client = ctx->curclient;
-	cdata->client->references++;
-
 	window_choose_ready(wl->window->active,
-	    cur, cmd_choose_window_callback, cmd_choose_window_free, cdata);
+	    cur, cmd_choose_window_callback, cmd_choose_window_free);
 
 	return (0);
 }
 
 void
-cmd_choose_window_callback(void *data, int idx)
+cmd_choose_window_callback(struct window_choose_data *cdata)
 {
-	struct window_choose_data	*cdata = data;
 	struct session			*s = cdata->session;
+	u_int				 idx;
 
-	if (idx == -1)
+	if (cdata == NULL)
 		return;
+
 	if (!session_alive(s))
 		return;
+
 	if (cdata->client->flags & CLIENT_DEAD)
 		return;
+
+	idx = cdata->idx;
 
 	xasprintf(&cdata->raw_format, "%s:%d", s->name, idx);
 	window_choose_ctx(cdata);
 }
 
 void
-cmd_choose_window_free(void *data)
+cmd_choose_window_free(struct window_choose_data *cdata)
 {
-	struct window_choose_data	*cdata = data;
+	if (cdata == NULL)
+		return;
 
 	cdata->session->references--;
 	cdata->client->references--;
-	xfree(cdata->template);
-	xfree(cdata->raw_format);
+
+	xfree(cdata->ft_template);
+	xfree(cdata->action);
+	format_free(cdata->ft);
 	xfree(cdata);
 }
