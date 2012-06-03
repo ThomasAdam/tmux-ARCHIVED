@@ -222,8 +222,7 @@ status_redraw(struct client *c)
 	/* Calculate the total size needed for the window list. */
 	wlstart = wloffset = wlwidth = 0;
 	RB_FOREACH(wl, winlinks, &s->windows) {
-		if (wl->status_text != NULL)
-			xfree(wl->status_text);
+		xfree(wl->status_text);
 		memcpy(&wl->status_cell, &stdgc, sizeof wl->status_cell);
 		wl->status_text = status_print(c, wl, t, &wl->status_cell);
 		wl->status_width =
@@ -372,10 +371,8 @@ draw:
 	screen_write_stop(&ctx);
 
 out:
-	if (left != NULL)
-		xfree(left);
-	if (right != NULL)
-		xfree(right);
+	xfree(left);
+	xfree(right);
 
 	if (grid_compare(c->status.grid, old_status.grid) == 0) {
 		screen_free(&old_status);
@@ -491,8 +488,7 @@ do_replace:
 	}
 
 out:
-	if (freeptr != NULL)
-		xfree(freeptr);
+	xfree(freeptr);
 	return;
 
 skip_to:
@@ -615,8 +611,7 @@ status_free_jobs(struct status_out_tree *sotree)
 		so_next = RB_NEXT(status_out_tree, sotree, so);
 
 		RB_REMOVE(status_out_tree, sotree, so);
-		if (so->out != NULL)
-			xfree(so->out);
+		xfree(so->out);
 		xfree(so->cmd);
 		xfree(so);
 	}

@@ -196,10 +196,8 @@ cmd_free_argv(int argc, char **argv)
 
 	if (argc == 0)
 		return;
-	for (i = 0; i < argc; i++) {
-		if (argv[i] != NULL)
-			xfree(argv[i]);
-	}
+	for (i = 0; i < argc; i++)
+		xfree(argv[i]);
 	xfree(argv);
 }
 
@@ -289,8 +287,7 @@ cmd_exec(struct cmd *cmd, struct cmd_ctx *ctx)
 void
 cmd_free(struct cmd *cmd)
 {
-	if (cmd->args != NULL)
-		args_free(cmd->args);
+	args_free(cmd->args);
 	xfree(cmd);
 }
 
@@ -897,8 +894,7 @@ no_session:
 		ctx->error(ctx, "multiple sessions: %s", arg);
 	else
 		ctx->error(ctx, "session not found: %s", arg);
-	if (sessptr != NULL)
-		xfree(sessptr);
+	xfree(sessptr);
 	return (NULL);
 
 not_found:
@@ -906,8 +902,7 @@ not_found:
 		ctx->error(ctx, "multiple windows: %s", arg);
 	else
 		ctx->error(ctx, "window not found: %s", arg);
-	if (sessptr != NULL)
-		xfree(sessptr);
+	xfree(sessptr);
 	return (NULL);
 }
 
@@ -998,8 +993,7 @@ cmd_find_index(struct cmd_ctx *ctx, const char *arg, struct session **sp)
 	} else if ((idx = cmd_lookup_index(s, winptr, &ambiguous)) == -1)
 		goto invalid_index;
 
-	if (sessptr != NULL)
-		xfree(sessptr);
+	xfree(sessptr);
 	return (idx);
 
 no_colon:
@@ -1038,8 +1032,7 @@ no_session:
 		ctx->error(ctx, "multiple sessions: %s", arg);
 	else
 		ctx->error(ctx, "session not found: %s", arg);
-	if (sessptr != NULL)
-		xfree(sessptr);
+	xfree(sessptr);
 	return (-2);
 
 invalid_index:
@@ -1047,8 +1040,7 @@ invalid_index:
 		goto not_found;
 	ctx->error(ctx, "invalid index: %s", arg);
 
-	if (sessptr != NULL)
-		xfree(sessptr);
+	xfree(sessptr);
 	return (-2);
 
 not_found:
@@ -1056,8 +1048,7 @@ not_found:
 		ctx->error(ctx, "multiple windows: %s", arg);
 	else
 		ctx->error(ctx, "window not found: %s", arg);
-	if (sessptr != NULL)
-		xfree(sessptr);
+	xfree(sessptr);
 	return (-2);
 }
 

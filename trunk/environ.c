@@ -52,8 +52,7 @@ environ_free(struct environ *env)
 		envent = RB_ROOT(env);
 		RB_REMOVE(environ, env, envent);
 		xfree(envent->name);
-		if (envent->value != NULL)
-			xfree(envent->value);
+		xfree(envent->value);
 		xfree(envent);
 	}
 }
@@ -85,8 +84,7 @@ environ_set(struct environ *env, const char *name, const char *value)
 	struct environ_entry	*envent;
 
 	if ((envent = environ_find(env, name)) != NULL) {
-		if (envent->value != NULL)
-			xfree(envent->value);
+		xfree(envent->value);
 		if (value != NULL)
 			envent->value = xstrdup(value);
 		else
@@ -130,8 +128,7 @@ environ_unset(struct environ *env, const char *name)
 		return;
 	RB_REMOVE(environ, env, envent);
 	xfree(envent->name);
-	if (envent->value != NULL)
-		xfree(envent->value);
+	xfree(envent->value);
 	xfree(envent);
 }
 

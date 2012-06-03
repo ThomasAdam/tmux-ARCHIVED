@@ -71,8 +71,7 @@ screen_reinit(struct screen *s)
 void
 screen_free(struct screen *s)
 {
-	if (s->tabs != NULL)
-		xfree(s->tabs);
+	xfree(s->tabs);
 	xfree(s->title);
 	xfree(s->ccolour);
 	grid_destroy(s->grid);
@@ -84,8 +83,7 @@ screen_reset_tabs(struct screen *s)
 {
 	u_int	i;
 
-	if (s->tabs != NULL)
-		xfree(s->tabs);
+	xfree(s->tabs);
 
 	if ((s->tabs = bit_alloc(screen_size_x(s))) == NULL)
 		fatal("bit_alloc failed");

@@ -98,10 +98,8 @@ grid_destroy(struct grid *gd)
 
 	for (yy = 0; yy < gd->hsize + gd->sy; yy++) {
 		gl = &gd->linedata[yy];
-		if (gl->celldata != NULL)
-			xfree(gl->celldata);
-		if (gl->utf8data != NULL)
-			xfree(gl->utf8data);
+		xfree(gl->celldata);
+		xfree(gl->utf8data);
 	}
 
 	xfree(gd->linedata);
@@ -373,10 +371,8 @@ grid_clear_lines(struct grid *gd, u_int py, u_int ny)
 
 	for (yy = py; yy < py + ny; yy++) {
 		gl = &gd->linedata[yy];
-		if (gl->celldata != NULL)
-			xfree(gl->celldata);
-		if (gl->utf8data != NULL)
-			xfree(gl->utf8data);
+		xfree(gl->celldata);
+		xfree(gl->utf8data);
 		memset(gl, 0, sizeof *gl);
 	}
 }

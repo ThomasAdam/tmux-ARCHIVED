@@ -170,8 +170,7 @@ error:
 	xasprintf(cause, "invalid or unknown command: %s", s);
 
 out:
-	if (buf != NULL)
-		xfree(buf);
+	xfree(buf);
 
 	if (argv != NULL) {
 		for (i = 0; i < argc; i++)
@@ -239,8 +238,7 @@ cmd_string_string(const char *s, size_t *p, char endch, int esc)
 	return (buf);
 
 error:
-	if (buf != NULL)
-		xfree(buf);
+	xfree(buf);
 	return (NULL);
 }
 
@@ -309,8 +307,7 @@ cmd_string_variable(const char *s, size_t *p)
 	return (xstrdup(envent->value));
 
 error:
-	if (buf != NULL)
-		xfree(buf);
+	xfree(buf);
 	return (NULL);
 }
 

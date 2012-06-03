@@ -125,8 +125,7 @@ session_create(const char *name, const char *cmd, const char *cwd,
 		s->name = NULL;
 		do {
 			s->idx = next_session++;
-			if (s->name != NULL)
-				xfree (s->name);
+			xfree (s->name);
 			xasprintf(&s->name, "%u", s->idx);
 		} while (RB_FIND(sessions, &sessions, s) != NULL);
 	}
@@ -156,8 +155,7 @@ session_destroy(struct session *s)
 	RB_REMOVE(sessions, &sessions, s);
 	notify_session_closed(s);
 
-	if (s->tio != NULL)
-		xfree(s->tio);
+	xfree(s->tio);
 
 	session_group_remove(s);
 	environ_free(&s->environ);

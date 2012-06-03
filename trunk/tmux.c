@@ -255,32 +255,28 @@ main(int argc, char **argv)
 			flags &= ~IDENTIFY_256COLOURS;
 			break;
 		case 'c':
-			if (shell_cmd != NULL)
-				xfree(shell_cmd);
+			xfree(shell_cmd);
 			shell_cmd = xstrdup(optarg);
 			break;
 		case 'V':
 			printf("%s %s\n", __progname, VERSION);
 			exit(0);
 		case 'f':
-			if (cfg_file != NULL)
-				xfree(cfg_file);
+			xfree(cfg_file);
 			cfg_file = xstrdup(optarg);
 			break;
 		case 'l':
 			login_shell = 1;
 			break;
 		case 'L':
-			if (label != NULL)
-				xfree(label);
+			xfree(label);
 			label = xstrdup(optarg);
 			break;
 		case 'q':
 			quiet = 1;
 			break;
 		case 'S':
-			if (path != NULL)
-				xfree(path);
+			xfree(path);
 			path = xstrdup(optarg);
 			break;
 		case 'u':
@@ -387,8 +383,7 @@ main(int argc, char **argv)
 			}
 		}
 	}
-	if (label != NULL)
-		xfree(label);
+	xfree(label);
 	if (realpath(path, socket_path) == NULL)
 		strlcpy(socket_path, path, sizeof socket_path);
 	xfree(path);
