@@ -28,8 +28,8 @@
 
 int	cmd_choose_session_exec(struct cmd *, struct cmd_ctx *);
 
-void	cmd_choose_session_callback(void *, int);
-void	cmd_choose_session_free(void *);
+void	cmd_choose_session_callback(struct window_choose_data *);
+void	cmd_choose_session_free(struct window_choose_data *);
 
 const struct cmd_entry cmd_choose_session_entry = {
 	"choose-session", NULL,
@@ -48,9 +48,7 @@ cmd_choose_session_exec(struct cmd *self, struct cmd_ctx *ctx)
 	struct window_choose_data	*cdata;
 	struct winlink			*wl;
 	struct session			*s;
-	struct format_tree		*ft;
 	const char			*template;
-	char				*line;
 	u_int			 	 idx, cur;
 
 	if (ctx->curclient == NULL) {
@@ -73,41 +71,41 @@ cmd_choose_session_exec(struct cmd *self, struct cmd_ctx *ctx)
 			cur = idx;
 		idx++;
 
-		ft = format_create();
-		format_add(ft, "line", "%u", idx);
-		format_session(ft, s);
+		cdata = window_choose_data_create(ctx);
+		if (args->argc != 0)
+			cdata->action = xstrdup(args->argv[0]);
+		else
+			cdata->action = xstrdup("switch-client -t '%%'");
+		cdata->idx = s->idx;
 
-		line = format_expand(ft, template);
-		window_choose_add(wl->window->active, s->idx, "%s", line);
-		xfree(line);
+		cdata->client->references++;
+		cdata->session->references++;
 
-		format_free(ft);
+		cdata->ft_template = xstrdup(template);
+		format_add(cdata->ft, "line", "%u", idx);
+		format_session(cdata->ft, s);
+
+		window_choose_add(wl->window->active, cdata);
 	}
 
-	cdata = xmalloc(sizeof *cdata);
-	if (args->argc != 0)
-		cdata->template = xstrdup(args->argv[0]);
-	else
-		cdata->template = xstrdup("switch-client -t '%%'");
-	cdata->client = ctx->curclient;
-	cdata->client->references++;
-
 	window_choose_ready(wl->window->active,
-	    cur, cmd_choose_session_callback, cmd_choose_session_free, cdata);
+	    cur, cmd_choose_session_callback, cmd_choose_session_free);
 
 	return (0);
 }
 
 void
-cmd_choose_session_callback(void *data, int idx)
+cmd_choose_session_callback(struct window_choose_data *cdata)
 {
-	struct window_choose_data	*cdata = data;
 	struct session			*s;
+	u_int				 idx;
 
-	if (idx == -1)
+	if (cdata == NULL)
 		return;
 	if (cdata->client->flags & CLIENT_DEAD)
 		return;
+
+	idx = cdata->idx;
 
 	s = session_find_by_index(idx);
 	if (s == NULL)
@@ -118,12 +116,16 @@ cmd_choose_session_callback(void *data, int idx)
 }
 
 void
-cmd_choose_session_free(void *data)
+cmd_choose_session_free(struct window_choose_data *cdata)
 {
-	struct window_choose_data	*cdata = data;
+	if (cdata == NULL)
+		return;
 
 	cdata->client->references--;
-	xfree(cdata->template);
-	xfree(cdata->raw_format);
+	cdata->session->references--;
+
+	xfree(cdata->ft_template);
+	xfree(cdata->action);
+	format_free(cdata->ft);
 	xfree(cdata);
 }
