@@ -511,3 +511,39 @@ window_choose_ctx(struct window_choose_data *cdata)
 	cmd_list_exec(cmdlist, &ctx);
 	cmd_list_free(cmdlist);
 }
+
+void window_choose_add_session(struct window_pane *wp, struct cmd_ctx *ctx,
+	struct session *s, const char *template, const char *action, u_int idx)
+{
+	struct window_choose_data	*wcd;
+
+	wcd = window_choose_data_create(ctx);
+	wcd->action = xstrdup(action);
+	wcd->idx = s->idx;
+	wcd->ft_template = xstrdup(template);
+	format_add(wcd->ft, "line", "%u", idx);
+	format_session(wcd->ft, s);
+
+	window_choose_add(wp, wcd);
+}
+
+void window_choose_add_window(struct window_pane *wp, struct cmd_ctx *ctx,
+	struct session *s, struct winlink *wl, const char *template,
+	const char *action, u_int idx)
+{
+	struct window_choose_data	*wcd;
+
+	wcd = window_choose_data_create(ctx);
+	wcd->action = xstrdup(action);
+	wcd->idx = wl->idx;
+	wcd->ft_template = xstrdup(template);
+	format_add(wcd->ft, "line", "%u", idx);
+	format_session(wcd->ft, s);
+	format_winlink(wcd->ft, s, wl);
+	format_window_pane(wcd->ft, wl->window->active);
+
+	wcd->client->references++;
+	wcd->session->references++;
+
+	window_choose_add(wp, wcd);
+}

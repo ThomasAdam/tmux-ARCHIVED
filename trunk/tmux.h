@@ -2138,6 +2138,11 @@ void		 window_choose_ready(struct window_pane *,
 struct window_choose_data	*window_choose_data_create(
 			struct cmd_ctx *);
 void		 window_choose_ctx(struct window_choose_data *);
+void		 window_choose_add_window(struct window_pane *, struct cmd_ctx *,
+		    struct session *, struct winlink *, const char *,
+		    const char *, u_int);
+void		 window_choose_add_session(struct window_pane *, struct cmd_ctx *,
+		    struct session *, const char *, const char *, u_int);
 
 /* names.c */
 void		 queue_window_name(struct window *);
