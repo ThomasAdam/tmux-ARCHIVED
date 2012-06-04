@@ -111,10 +111,14 @@ cmd_choose_buffer_free(struct window_choose_data *data)
 {
 	struct window_choose_data	*cdata = data;
 
+	if (cdata == NULL)
+		return;
+
 	cdata->client->references--;
 
 	xfree(cdata->ft_template);
 	xfree(cdata->action);
 	xfree(cdata->raw_format);
+	format_free(cdata->ft);
 	xfree(cdata);
 }
