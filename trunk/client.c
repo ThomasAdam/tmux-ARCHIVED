@@ -58,6 +58,7 @@ void		client_write_server(enum msgtype, void *, size_t);
 void		client_update_event(void);
 void		client_signal(int, short, void *);
 void		client_stdin_callback(int, short, void *);
+void		client_write(int, const char *, size_t);
 void		client_callback(int, short, void *);
 int		client_dispatch_attached(void);
 int		client_dispatch_wait(void *);
@@ -169,6 +170,7 @@ client_main(int argc, char **argv, int flags)
 	pid_t			 ppid;
 	enum msgtype		 msg;
 	char			*cause;
+	struct termios		 tio, saved_tio;
 
 	/* Set up the initial command. */
 	cmdflags = 0;
@@ -235,6 +237,23 @@ client_main(int argc, char **argv, int flags)
 	setblocking(STDIN_FILENO, 0);
 	event_set(&client_stdin, STDIN_FILENO, EV_READ|EV_PERSIST,
 	    client_stdin_callback, NULL);
+	if (flags & IDENTIFY_TERMIOS) {
+		if (tcgetattr(STDIN_FILENO, &saved_tio) != 0) {
+			fprintf(stderr, "tcgetattr failed: %s\n",
+			    strerror(errno));
+			return (1);
+		}
+		cfmakeraw(&tio);
+		tio.c_iflag = ICRNL|IXANY;
+		tio.c_oflag = OPOST|ONLCR;
+		tio.c_lflag = NOKERNINFO;
+		tio.c_cflag = CREAD|CS8|HUPCL;
+		tio.c_cc[VMIN] = 1;
+		tio.c_cc[VTIME] = 0;
+		cfsetispeed(&tio, cfgetispeed(&saved_tio));
+		cfsetospeed(&tio, cfgetospeed(&saved_tio));
+		tcsetattr(STDIN_FILENO, TCSANOW, &tio);
+	}
 
 	/* Establish signal handlers. */
 	set_signals(client_signal);
@@ -275,7 +294,8 @@ client_main(int argc, char **argv, int flags)
 		ppid = getppid();
 		if (client_exittype == MSG_DETACHKILL && ppid > 1)
 			kill(ppid, SIGHUP);
-	}
+	} else if (flags & IDENTIFY_TERMIOS)
+		tcsetattr(STDOUT_FILENO, TCSAFLUSH, &saved_tio);
 	setblocking(STDIN_FILENO, 1);
 	return (client_exitval);
 }
@@ -441,6 +461,24 @@ client_stdin_callback(unused int fd, unused short events, unused void *data1)
 	client_update_event();
 }
 
+/* Force write to file descriptor. */
+void
+client_write(int fd, const char *data, size_t size)
+{
+	ssize_t	used;
+
+	while (size != 0) {
+		used = write(fd, data, size);
+		if (used == -1) {
+			if (errno == EINTR || errno == EAGAIN)
+				continue;
+			break;
+		}
+		data += used;
+		size -= used;
+	}
+}
+
 /* Dispatch imsgs when in wait state (before MSG_READY). */
 int
 client_dispatch_wait(void *data)
@@ -485,14 +523,14 @@ client_dispatch_wait(void *data)
 				fatalx("bad MSG_STDOUT");
 			memcpy(&stdoutdata, imsg.data, sizeof stdoutdata);
 
-			fwrite(stdoutdata.data, stdoutdata.size, 1, stdout);
+			client_write(STDOUT_FILENO, stdoutdata.data, stdoutdata.size);
 			break;
 		case MSG_STDERR:
 			if (datalen != sizeof stderrdata)
 				fatalx("bad MSG_STDERR");
 			memcpy(&stderrdata, imsg.data, sizeof stderrdata);
 
-			fwrite(stderrdata.data, stderrdata.size, 1, stderr);
+			client_write(STDERR_FILENO, stderrdata.data, stderrdata.size);
 			break;
 		case MSG_VERSION:
 			if (datalen != 0)
@@ -515,6 +553,12 @@ client_dispatch_wait(void *data)
 
 			shell_exec(shelldata.shell, shellcmd);
 			/* NOTREACHED */
+		case MSG_DETACH:
+			client_write_server(MSG_EXITING, NULL, 0);
+			break;
+		case MSG_EXITED:
+			imsg_free(&imsg);
+			return (-1);
 		default:
 			fatalx("unexpected message");
 		}

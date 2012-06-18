@@ -589,6 +589,7 @@ recently used
 session.
 .It Xo Ic detach-client
 .Op Fl P
+.Op Fl a
 .Op Fl s Ar target-session
 .Op Fl t Ar target-client
 .Xc
@@ -597,6 +598,10 @@ Detach the current client if bound to a key, the client specified with
 .Fl t ,
 or all clients currently attached to the session specified by
 .Fl s .
+The
+.Fl a
+option kills all but the client given with
+.Fl t .
 If
 .Fl P
 is given, send SIGHUP to the parent process of the client, typically causing it
@@ -609,9 +614,14 @@ If it does exist, exit with 0.
 Kill the
 .Nm
 server and clients and destroy all sessions.
-.It Ic kill-session Op Fl t Ar target-session
+.It Ic kill-session
+.Op Fl a
+.Op Fl t Ar target-session
 Destroy the given session, closing any windows linked to it and no other
 sessions, and detaching all clients attached to it.
+If
+.Fl a
+is given, all sessions but the specified one is killed.
 .It Xo Ic list-clients
 .Op Fl F Ar format
 .Op Fl t Ar target-session
@@ -1383,7 +1393,7 @@ Move a window to the next layout and rearrange the panes to fit.
 Move to the next window in the session.
 If
 .Fl a
-is used, move to the next window with a bell, activity or content alert.
+is used, move to the next window with an alert.
 .It Xo Ic pipe-pane
 .Op Fl o
 .Op Fl t Ar target-pane
@@ -1426,7 +1436,7 @@ Move to the previous layout in the session.
 Move to the previous window in the session.
 With
 .Fl a ,
-move to the previous window with a bell, activity or content alert.
+move to the previous window with an alert.
 .It Xo Ic rename-window
 .Op Fl t Ar target-window
 .Ar new-name
@@ -1954,7 +1964,7 @@ means only bell in windows other than the current window are ignored.
 .It Xo Ic bell-on-alert
 .Op Ic on | off
 .Xc
-If on, ring the terminal bell when an activity, content or silence alert
+If on, ring the terminal bell when an alert
 occurs.
 .It Ic default-command Ar shell-command
 Set the command used for new windows (if not specified when the window is
