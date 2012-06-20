@@ -1198,7 +1198,6 @@ winlink_clear_flags(struct winlink *wl)
 				wm->window == wl->window)
 			{
 				wm->flags &= ~WINLINK_ALERTFLAGS;
-				w->flags &= ~(WINDOW_BELL|WINDOW_ACTIVITY);
 
 				server_redraw_session(s);
 			}
