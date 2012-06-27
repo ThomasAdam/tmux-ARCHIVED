@@ -44,6 +44,26 @@ const struct cmd_entry cmd_choose_tree_entry = {
 	cmd_choose_tree_exec
 };
 
+const struct cmd_entry cmd_choose_session_entry = {
+	"choose-session", NULL,
+	"Ss:b:t:", 0, 1,
+	CMD_TARGET_WINDOW_USAGE " [-s format] [-b session template]",
+	0,
+	NULL,
+	NULL,
+	cmd_choose_tree_exec
+};
+
+const struct cmd_entry cmd_choose_window_entry = {
+	"choose-window", NULL,
+	"Ww:c:t:", 0, 1,
+	CMD_TARGET_WINDOW_USAGE "[-W] [-w format] [-c window template]",
+	0,
+	NULL,
+	NULL,
+	cmd_choose_tree_exec
+};
+
 int
 cmd_choose_tree_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
@@ -62,6 +82,10 @@ cmd_choose_tree_exec(struct cmd *self, struct cmd_ctx *ctx)
 		ctx->error(ctx, "must be run interactively");
 		return (-1);
 	}
+
+	sflag = self->entry == &cmd_choose_session_entry;
+	wflag = self->entry == &cmd_choose_window_entry;
+
 	s = ctx->curclient->session;
 	tty = &ctx->curclient->tty;
 
@@ -83,8 +107,16 @@ cmd_choose_tree_exec(struct cmd *self, struct cmd_ctx *ctx)
 	if ((win_template = args_get(args, 'w')) == NULL)
 		win_template = DEFAULT_WINDOW_TEMPLATE " \"#{pane_title}\"";
 
-	wflag = args_has(args, 'W');
-	sflag = args_has(args, 'S');
+	if (self->entry == &cmd_choose_tree_entry) {
+		wflag = args_has(args, 'W');
+		sflag = args_has(args, 'S');
+	}
+
+	if (!wflag && !sflag) {
+		ctx->error(ctx, "Nothing to display, no flags given.");
+		window_pane_reset_mode(wl->window->active);
+		return (-1);
+	}
 
 	/* If we're drawing in tree mode, including sessions, then pad the
 	 * window template with ACS drawing characters, otherwise just render
