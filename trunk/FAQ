@@ -430,5 +430,16 @@ tmux will still emulate the alternate screen for applications run under tmux,
 so you don't really lose anything with this setting. The only disadvantage is
 that when you exit tmux, it will not restore whatever was there before you
 started.
- 
+
+* How do I get tmux to use its default configuration values?
+
+By default, tmux has a sane number of default values hard-coded, which are
+used when no tmux configuration file is read.  One is able to query tmux
+about those values by using the following:
+
+    $ tmux -L fooX -f /dev/null start \; show-options -g
+
+The point here is to start a new tmux server using no configuration file at
+all, and hence for tmux to use the hard-coded values.
+
 $Id$
