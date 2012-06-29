@@ -492,20 +492,22 @@ layout_set_maximised_pane(struct window *w)
 
 	wp_active = w->active;
 
+	lcpane = layout_create_cell(lc);
+	layout_set_size(lcpane, w->sx, w->sy, 0, 0);
+	layout_make_leaf(lcpane, wp_active);
+	TAILQ_INSERT_TAIL(&lc->cells, lcpane, entry);
+	layout_resize_adjust(lcpane, LAYOUT_TOPBOTTOM, w->sy);
+
 	TAILQ_FOREACH(wp, &w->panes, entry) {
 		if (wp_active == wp)
 			continue;
 
 		/* Create child cell. */
 		lcnew = layout_create_cell(lc);
-		layout_set_size(lcnew, w->sx, w->sy, 0, 0);
+		layout_set_size(lcnew, wp->sx, wp->sy, 0, 0);
+		layout_make_node(lc, LAYOUT_TOPBOTTOM);
+		TAILQ_INSERT_TAIL(&lc->cells, lcnew, entry);
 	}
-
-	lcpane = layout_create_cell(lc);
-	layout_set_size(lcpane, w->sx, w->sy, 0, 0);
-	layout_make_leaf(lcpane, wp_active);
-	TAILQ_INSERT_TAIL(&lc->cells, lcpane, entry);
-	layout_resize_adjust(lcpane, LAYOUT_TOPBOTTOM, w->sy);
 
 	layout_fix_offsets(lc);
 	layout_fix_panes(w, w->sx, w->sy);
