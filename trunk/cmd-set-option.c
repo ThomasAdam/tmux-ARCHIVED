@@ -27,7 +27,7 @@
  * Set an option.
  */
 
-int	cmd_set_option_exec(struct cmd *, struct cmd_ctx *);
+enum cmd_retval	 cmd_set_option_exec(struct cmd *, struct cmd_ctx *);
 
 int	cmd_set_option_unset(struct cmd *, struct cmd_ctx *,
 	    const struct options_table_entry *, struct options *,
@@ -78,7 +78,7 @@ const struct cmd_entry cmd_set_window_option_entry = {
 	cmd_set_option_exec
 };
 
-int
+enum cmd_retval
 cmd_set_option_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
 	struct args				*args = self->args;
@@ -168,7 +168,7 @@ cmd_set_option_exec(struct cmd *self, struct cmd_ctx *ctx)
 			server_redraw_client(c);
 	}
 
-	return (0);
+	return (CMD_RETURN_NORMAL);
 }
 
 /* Unset an option. */

@@ -30,7 +30,7 @@
 
 void	cmd_command_prompt_key_binding(struct cmd *, int);
 int	cmd_command_prompt_check(struct args *);
-int	cmd_command_prompt_exec(struct cmd *, struct cmd_ctx *);
+enum cmd_retval	cmd_command_prompt_exec(struct cmd *, struct cmd_ctx *);
 
 int	cmd_command_prompt_callback(void *, const char *);
 void	cmd_command_prompt_free(void *);
@@ -83,7 +83,7 @@ cmd_command_prompt_key_binding(struct cmd *self, int key)
 	}
 }
 
-int
+enum cmd_retval
 cmd_command_prompt_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
 	struct args			*args = self->args;
@@ -94,10 +94,10 @@ cmd_command_prompt_exec(struct cmd *self, struct cmd_ctx *ctx)
 	size_t				 n;
 
 	if ((c = cmd_find_client(ctx, args_get(args, 't'))) == NULL)
-		return (-1);
+		return (CMD_RETURN_ERROR);
 
 	if (c->prompt_string != NULL)
-		return (0);
+		return (CMD_RETURN_NORMAL);
 
 	cdata = xmalloc(sizeof *cdata);
 	cdata->c = c;
@@ -140,7 +140,7 @@ cmd_command_prompt_exec(struct cmd *self, struct cmd_ctx *ctx)
 	    cmd_command_prompt_free, cdata, 0);
 	xfree(prompt);
 
-	return (0);
+	return (CMD_RETURN_NORMAL);
 }
 
 int

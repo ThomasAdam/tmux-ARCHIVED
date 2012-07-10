@@ -24,10 +24,9 @@
  * Unbind key from command.
  */
 
-int	cmd_unbind_key_check(struct args *);
-int	cmd_unbind_key_exec(struct cmd *, struct cmd_ctx *);
-
-int	cmd_unbind_key_table(struct cmd *, struct cmd_ctx *, int);
+enum cmd_retval	 cmd_unbind_key_check(struct args *);
+enum cmd_retval	 cmd_unbind_key_exec(struct cmd *, struct cmd_ctx *);
+enum cmd_retval	 cmd_unbind_key_table(struct cmd *, struct cmd_ctx *, int);
 
 const struct cmd_entry cmd_unbind_key_entry = {
 	"unbind-key", "unbind",
@@ -39,17 +38,17 @@ const struct cmd_entry cmd_unbind_key_entry = {
 	cmd_unbind_key_exec
 };
 
-int
+enum cmd_retval
 cmd_unbind_key_check(struct args *args)
 {
 	if (args_has(args, 'a') && args->argc != 0)
-		return (-1);
+		return (CMD_RETURN_ERROR);
 	if (!args_has(args, 'a') && args->argc != 1)
-		return (-1);
-	return (0);
+		return (CMD_RETURN_ERROR);
+	return (CMD_RETURN_NORMAL);
 }
 
-int
+enum cmd_retval
 cmd_unbind_key_exec(struct cmd *self, unused struct cmd_ctx *ctx)
 {
 	struct args		*args = self->args;
@@ -60,7 +59,7 @@ cmd_unbind_key_exec(struct cmd *self, unused struct cmd_ctx *ctx)
 		key = key_string_lookup_string(args->argv[0]);
 		if (key == KEYC_NONE) {
 			ctx->error(ctx, "unknown key: %s", args->argv[0]);
-			return (-1);
+			return (CMD_RETURN_ERROR);
 		}
 	} else
 		key = KEYC_NONE;
@@ -73,16 +72,16 @@ cmd_unbind_key_exec(struct cmd *self, unused struct cmd_ctx *ctx)
 			bd = RB_ROOT(&key_bindings);
 			key_bindings_remove(bd->key);
 		}
-		return (0);
+		return (CMD_RETURN_NORMAL);
 	}
 
 	if (!args_has(args, 'n'))
 		key |= KEYC_PREFIX;
 	key_bindings_remove(key);
-	return (0);
+	return (CMD_RETURN_NORMAL);
 }
 
-int
+enum cmd_retval
 cmd_unbind_key_table(struct cmd *self, struct cmd_ctx *ctx, int key)
 {
 	struct args			*args = self->args;
@@ -93,7 +92,7 @@ cmd_unbind_key_table(struct cmd *self, struct cmd_ctx *ctx, int key)
 	tablename = args_get(args, 't');
 	if ((mtab = mode_key_findtable(tablename)) == NULL) {
 		ctx->error(ctx, "unknown key table: %s", tablename);
-		return (-1);
+		return (CMD_RETURN_ERROR);
 	}
 
 	if (key == KEYC_NONE) {
@@ -102,7 +101,7 @@ cmd_unbind_key_table(struct cmd *self, struct cmd_ctx *ctx, int key)
 			RB_REMOVE(mode_key_tree, mtab->tree, mbind);
 			xfree(mbind);
 		}
-		return (0);
+		return (CMD_RETURN_NORMAL);
 	}
 
 	mtmp.key = key;
@@ -111,5 +110,5 @@ cmd_unbind_key_table(struct cmd *self, struct cmd_ctx *ctx, int key)
 		RB_REMOVE(mode_key_tree, mtab->tree, mbind);
 		xfree(mbind);
 	}
-	return (0);
+	return (CMD_RETURN_NORMAL);
 }

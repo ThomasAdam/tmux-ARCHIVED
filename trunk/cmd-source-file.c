@@ -24,7 +24,7 @@
  * Sources a configuration file.
  */
 
-int	cmd_source_file_exec(struct cmd *, struct cmd_ctx *);
+enum cmd_retval	 cmd_source_file_exec(struct cmd *, struct cmd_ctx *);
 
 const struct cmd_entry cmd_source_file_entry = {
 	"source-file", "source",
@@ -36,7 +36,7 @@ const struct cmd_entry cmd_source_file_entry = {
 	cmd_source_file_exec
 };
 
-int
+enum cmd_retval
 cmd_source_file_exec(struct cmd *self, struct cmd_ctx *ctx)
 {
 	struct args		*args = self->args;

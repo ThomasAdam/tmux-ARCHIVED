@@ -26,7 +26,7 @@
  * List paste buffers.
  */
 
-int	cmd_list_buffers_exec(struct cmd *, struct cmd_ctx *);
+enum cmd_retval	 cmd_list_buffers_exec(struct cmd *, struct cmd_ctx *);
 
 const struct cmd_entry cmd_list_buffers_entry = {
 	"list-buffers", "lsb",
@@ -39,7 +39,7 @@ const struct cmd_entry cmd_list_buffers_entry = {
 };
 
 /* ARGSUSED */
-int
+enum cmd_retval
 cmd_list_buffers_exec(unused struct cmd *self, struct cmd_ctx *ctx)
 {
 	struct args		*args = self->args;
@@ -65,5 +65,5 @@ cmd_list_buffers_exec(unused struct cmd *self, struct cmd_ctx *ctx)
 		format_free(ft);
 	}
 
-	return (0);
+	return (CMD_RETURN_NORMAL);
 }
