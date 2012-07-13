@@ -1193,3 +1193,48 @@ winlink_clear_flags(struct winlink *wl)
 		}
 	}
 }
+
+/* Set the fg/bg colour for a given window's alert status. */
+void
+winlink_set_alert_colours(struct winlink *wl, struct grid_cell *gc)
+{
+	struct options	*oo;
+	int		 fg, bg, attr;
+
+	if (wl == NULL)
+		return;
+
+	oo = &wl->window->options;
+
+	if (wl->flags & WINLINK_BELL) {
+		fg = options_get_number(oo, "window-status-bell-fg");
+		if (fg != 8)
+			colour_set_fg(gc, fg);
+		bg = options_get_number(oo, "window-status-bell-bg");
+		if (bg != 8)
+			colour_set_bg(gc, bg);
+		attr = options_get_number(oo, "window-status-bell-attr");
+		if (attr != 0)
+			gc->attr = attr;
+	} else if (wl->flags & WINLINK_CONTENT) {
+		fg = options_get_number(oo, "window-status-content-fg");
+		if (fg != 8)
+			colour_set_fg(gc, fg);
+		bg = options_get_number(oo, "window-status-content-bg");
+		if (bg != 8)
+			colour_set_bg(gc, bg);
+		attr = options_get_number(oo, "window-status-content-attr");
+		if (attr != 0)
+			gc->attr = attr;
+	} else if (wl->flags & (WINLINK_ACTIVITY|WINLINK_SILENCE)) {
+		fg = options_get_number(oo, "window-status-activity-fg");
+		if (fg != 8)
+			colour_set_fg(gc, fg);
+		bg = options_get_number(oo, "window-status-activity-bg");
+		if (bg != 8)
+			colour_set_bg(gc, bg);
+		attr = options_get_number(oo, "window-status-activity-attr");
+		if (attr != 0)
+			gc->attr = attr;
+	}
+}
