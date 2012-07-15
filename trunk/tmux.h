@@ -2086,6 +2086,7 @@ void		 window_set_name(struct window *, const char *);
 void		 winlink_clear_flags(struct winlink *);
 void		 winlink_set_alert_colours(
 		    struct winlink *, struct grid_cell *);
+void		 window_mode_attrs(struct grid_cell *, struct options *);
 
 /* layout.c */
 u_int		 layout_count_cells(struct layout_cell *);
