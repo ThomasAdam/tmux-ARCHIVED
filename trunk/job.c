@@ -81,6 +81,10 @@ job_run(const char *cmd,
 
 		closefrom(STDERR_FILENO + 1);
 
+		/* Update timer. */
+		if (gettimeofday(&job->timer, NULL) != 0)
+			fatal("gettimeofday failed");
+
 		execl(_PATH_BSHELL, "sh", "-c", cmd, (char *) NULL);
 		fatal("execl failed");
 	}

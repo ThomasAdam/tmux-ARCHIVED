@@ -268,6 +268,49 @@ server_client_status_timer(void)
 	}
 }
 
+/* Handle specific timeouts on jobs in status line. */
+void
+server_client_jobs_timer(void)
+{
+	struct client	*c;
+	struct session	*s;
+	struct job	*job;
+	struct timeval	 tv;
+	u_int		 i, k;
+	int		 interval;
+	time_t		 difference;
+
+	if (gettimeofday(&tv, NULL) != 0)
+		fatal("gettimeofday failed");
+
+	for (i = 0; i < ARRAY_LENGTH(&clients); i++) {
+		c = ARRAY_ITEM(&clients, i);
+		if (c == NULL || c->session == NULL)
+			continue;
+		if (c->message_string != NULL || c->prompt_string != NULL) {
+			/*
+			 * Don't need timed redraw for messages/prompts so bail
+			 * now. The status timer isn't reset when they are
+			 * redrawn anyway.
+			 */
+			continue;
+		}
+		s = c->session;
+
+		if (!options_get_number(&s->options, "status"))
+			continue;
+
+		LIST_FOREACH(job, &all_jobs, lentry) {
+			difference = tv.tv_sec - job->timer.tv_sec;
+			if (difference >= interval) {
+				status_update_jobs(c);
+				c->flags |= CLIENT_STATUS;
+			}
+		}
+	}
+
+}
+
 /* Check for mouse keys. */
 void
 server_client_check_mouse(

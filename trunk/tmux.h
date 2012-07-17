@@ -724,6 +724,7 @@ struct options {
 
 /* Scheduled job. */
 struct job {
+	struct timeval	 timer;
 	char		*cmd;
 	pid_t		 pid;
 	int		 status;

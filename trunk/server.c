@@ -504,6 +504,7 @@ server_second_callback(unused int fd, unused short events, unused void *arg)
 	}
 
 	server_client_status_timer();
+	server_client_jobs_timer();
 
 	evtimer_del(&server_ev_second);
 	memset(&tv, 0, sizeof tv);
