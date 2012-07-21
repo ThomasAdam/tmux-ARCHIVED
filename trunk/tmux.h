@@ -89,32 +89,32 @@ extern char   **environ;
 #endif
 
 /* Default format templates. */
-#define DEFAULT_BUFFER_LIST_TEMPLATE				\
-	"#{line}: #{buffer_size} bytes: \"#{buffer_sample}\""
-#define DEFAULT_CLIENT_TEMPLATE					\
-	"#{client_tty}: #{session_name} "			\
-	"[#{client_width}x#{client_height} #{client_termname}]"	\
+#define DEFAULT_BUFFER_LIST_TEMPLATE					\
+	"(#{line}) #{line}: #{buffer_size} bytes: \"#{buffer_sample}\""
+#define DEFAULT_CLIENT_TEMPLATE						\
+	"(#{line})  #{client_tty}: #{session_name} "			\
+	"[#{client_width}x#{client_height} #{client_termname}]"		\
 	"#{?client_utf8, (utf8),} #{?client_readonly, (ro),}"
-#define DEFAULT_DISPLAY_MESSAGE_TEMPLATE			\
-	"[#{session_name}] #{window_index}:"			\
-	"#{window_name}, current pane #{pane_index} "		\
+#define DEFAULT_DISPLAY_MESSAGE_TEMPLATE				\
+	"[#{session_name}] #{window_index}:"				\
+	"#{window_name}, current pane #{pane_index} "			\
 	"- (%H:%M %d-%b-%y)"
-#define DEFAULT_FIND_WINDOW_TEMPLATE				\
-	"#{window_index}: #{window_name} "			\
-	"[#{window_width}x#{window_height}] "			\
+#define DEFAULT_FIND_WINDOW_TEMPLATE					\
+	"(#{line})  #{window_index}: #{window_name} "			\
+	"[#{window_width}x#{window_height}] "				\
 	"(#{window_panes} panes) #{window_find_matches}"
 #define DEFAULT_SESSION_TEMPLATE \
-	"#{session_name}: #{session_windows} windows "		\
-	"(created #{session_created_string}) "			\
-	"[#{session_width}x#{session_height}]"			\
-	"#{?session_grouped, (group ,}"				\
-	"#{session_group}#{?session_grouped,),}"		\
+	"(#{line})  #{session_name}: #{session_windows} windows "	\
+	"(created #{session_created_string}) "				\
+	"[#{session_width}x#{session_height}]"				\
+	"#{?session_grouped, (group ,}"					\
+	"#{session_group}#{?session_grouped,),}"			\
 	"#{?session_attached, (attached),}"
-#define DEFAULT_WINDOW_TEMPLATE					\
-	"#{window_index}: #{window_name}#{window_flags} "	\
-	"(#{window_panes} panes) "				\
+#define DEFAULT_WINDOW_TEMPLATE						\
+	"(#{line})  #{window_index}: #{window_name}#{window_flags} "	\
+	"(#{window_panes} panes) "					\
 	"[#{window_width}x#{window_height}]"
-#define DEFAULT_PANE_INFO_TEMPLATE				\
+#define DEFAULT_PANE_INFO_TEMPLATE					\
 	"#{session_name}:#{window_index}.#{pane_index}"
 
 /* Bell option values. */
