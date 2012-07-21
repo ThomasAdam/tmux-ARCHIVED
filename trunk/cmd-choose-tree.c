@@ -149,7 +149,8 @@ cmd_choose_tree_exec(struct cmd *self, struct cmd_ctx *ctx)
 	 * without any padding.
 	 */
 	if (wflag && sflag)
-		xasprintf(&final_win_template, "    --> %s", win_template);
+		xasprintf(&final_win_template, "(#{line})    --> %s",
+			win_template);
 	else if (wflag)
 		final_win_template = xstrdup(win_template);
 	else
@@ -203,7 +204,8 @@ windows_only:
 
 			window_choose_add_window(wl->window->active,
 				ctx, s2, wm, final_win_template,
-				final_win_action, idx_ses);
+				final_win_action,
+				(wflag && !sflag) ? win_ses : idx_ses);
 
 			free(final_win_action);
 		}
