@@ -1073,6 +1073,7 @@ This command works only from inside
 .It Xo
 .Ic choose-list
 .Op Fl l Ar items
+.Op Fl c Ar command
 .Op Fl t Ar target-window
 .Op Ar template
 .Xc
@@ -1080,8 +1081,11 @@ Put a window into list choice mode, allowing
 .Ar items
 to be selected.
 .Ar items
-can be a comma-separated list to display more than one item.
-If an item has spaces, that entry must be quoted.
+can be specified as a comma-separated list with
+.Fl l
+or piped from an external command with
+.Fl c
+.
 After an item is chosen,
 .Ql %%
 is replaced by the chosen item in the
