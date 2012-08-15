@@ -19,6 +19,7 @@
 #include <sys/types.h>
 
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <string.h>
@@ -39,8 +40,8 @@ void cmd_choose_list_free(struct window_choose_data *);
 
 const struct cmd_entry cmd_choose_list_entry = {
 	"choose-list", NULL,
-	"l:t:", 0, 1,
-	"[-l items] " CMD_TARGET_WINDOW_USAGE "[template]",
+	"l:t:c:", 0, 1,
+	"[-l items] [-c command] " CMD_TARGET_WINDOW_USAGE "[template]",
 	0,
 	NULL,
 	NULL,
@@ -53,8 +54,12 @@ cmd_choose_list_exec(struct cmd *self, struct cmd_ctx *ctx)
 	struct args			*args = self->args;
 	struct winlink			*wl;
 	const char			*lists;
+	const char			*command;
 	const char			*template;
 	char				*list;
+	char				*buf;
+	int				 len;
+	FILE				*cmdin;
 	u_int				 idx;
 
 	if (ctx->curclient == NULL) {
@@ -62,7 +67,9 @@ cmd_choose_list_exec(struct cmd *self, struct cmd_ctx *ctx)
 		return (CMD_RETURN_ERROR);
 	}
 
-	if ((lists = args_get(args, 'l')) == NULL)
+	lists = args_get(args, 'l');
+	command = args_get(args, 'c');
+	if (lists == NULL && command == NULL)
 		return (CMD_RETURN_ERROR);
 
 	if ((wl = cmd_find_window(ctx, args_get(args, 't'), NULL)) == NULL)
@@ -77,18 +84,46 @@ cmd_choose_list_exec(struct cmd *self, struct cmd_ctx *ctx)
 		template = xstrdup(CMD_CHOOSE_LIST_DEFAULT_TEMPLATE);
 
 	idx = 0;
-	while ((list = strsep((char **)&lists, ",")) != NULL)
+	if (lists != NULL)
 	{
-		/*
-		 * Skip past trailing commas, resulting in the empty string
-		 * being displayed.
-		 */
-		if (strlen(list) == 0)
-			continue;
+		while ((list = strsep((char **)&lists, ",")) != NULL)
+		{
+			/*
+			* Skip past trailing commas, resulting in the empty
+			* string being displayed.
+			*/
+			if (strlen(list) == 0)
+				continue;
 
-		window_choose_add_item(wl->window->active, ctx, wl,
-			list, (char *)template, idx);
-		idx++;
+			window_choose_add_item(wl->window->active, ctx, wl,
+				list, (char *)template, idx);
+			idx++;
+		}
+	}
+	else
+	{
+		if ((cmdin = popen(command, "r")) != NULL)
+		{
+			while ((buf = fgetln(cmdin, &len)) != NULL)
+			{
+				if (buf[len - 1] == '\n')
+					len--;
+				if (len == 0)
+					continue;
+
+				/* zero-terminate the input */
+				list = xmalloc(len + 1);
+				memcpy(list, buf, len);
+				list[len] = 0;
+
+				window_choose_add_item(wl->window->active, ctx,
+					wl, list, (char *)template, idx);
+				idx++;
+
+				free(list);
+			}
+			pclose(cmdin);
+		}
 	}
 
 	window_choose_ready(wl->window->active, 0, cmd_choose_list_callback,
