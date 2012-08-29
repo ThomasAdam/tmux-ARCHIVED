@@ -27,6 +27,9 @@
 
 #include "tmux.h"
 
+#define EV_TIMER_PENDING(t) (evtimer_initialized(t) && \
+		evtimer_pending(t, NULL))
+
 /*
  * Handle keys input from the outside terminal. tty_keys[] is a base table of
  * supported keys which are looked up in terminfo(5) and translated into a
@@ -533,7 +536,7 @@ partial_key:
 	 * timer has expired, give up waiting and send the escape.
 	 */
 	if ((tty->flags & TTY_ESCAPE) &&
-	    !evtimer_pending(&tty->key_timer, NULL)) {
+	    !EV_TIMER_PENDING(&tty->key_timer)) {
 		evbuffer_drain(tty->event->input, 1);
 		key = '\033';
 		goto handle_key;
@@ -543,7 +546,7 @@ partial_key:
 
 start_timer:
 	/* If already waiting for timer, do nothing. */
-	if (evtimer_pending(&tty->key_timer, NULL))
+	if (EV_TIMER_PENDING(&tty->key_timer))
 		return (0);
 
 	/* Start the timer and wait for expiry or more data. */
