@@ -461,7 +461,7 @@ window_choose_write_line(
 		item = &ARRAY_ITEM(&data->list, data->top + py);
 		if (item->wcd->wl != NULL &&
 		    item->wcd->wl->flags & WINLINK_ALERTFLAGS)
-			gc.attr |= GRID_ATTR_BRIGHT;
+			gc.attr |= GRID_ATTR_REVERSE;
 
 		key = window_choose_key_index(data, data->top + py);
 		if (key != -1)
