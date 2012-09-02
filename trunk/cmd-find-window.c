@@ -88,9 +88,9 @@ cmd_find_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 	struct session			*s;
 	struct winlink			*wl, *wm;
 	struct window_pane		*wp;
-	ARRAY_DECL(, u_int)	 	 list_idx;
-	ARRAY_DECL(, char *)	 	 list_ctx;
-	char				*str, *sres, *sctx, *searchstr;
+	struct find_window_data		find_data;
+	ARRAY_DECL(, struct find_window_data)	fwd;
+	char				*str, *sres, *searchstr;
 	const char			*template;
 	u_int				 i, line, match_flags;
 
@@ -109,18 +109,18 @@ cmd_find_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 	match_flags = cmd_find_window_match_flags(args);
 	str = args->argv[0];
 
-	ARRAY_INIT(&list_idx);
-	ARRAY_INIT(&list_ctx);
+	ARRAY_INIT(&fwd);
 
 	xasprintf(&searchstr, "*%s*", str);
 	RB_FOREACH(wm, winlinks, &s->windows) {
+		memset(&find_data, '\0', sizeof(struct find_window_data));
 		i = 0;
 		TAILQ_FOREACH(wp, &wm->window->panes, entry) {
 			i++;
 
 			if ((match_flags & CMD_FIND_WINDOW_BY_NAME) &&
 			    fnmatch(searchstr, wm->window->name, 0) == 0)
-				sctx = xstrdup("");
+				find_data.list_ctx = xstrdup("");
 			else {
 				sres = NULL;
 				if (match_flags & CMD_FIND_WINDOW_BY_CONTENT) {
@@ -134,33 +134,35 @@ cmd_find_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 					continue;
 
 				if (sres == NULL) {
-					xasprintf(&sctx,
+					xasprintf(&find_data.list_ctx,
 					    "pane %u title: \"%s\"", i - 1,
 					    wp->base.title);
 				} else {
-					xasprintf(&sctx,
+					xasprintf(&find_data.list_ctx,
 					    "pane %u line %u: \"%s\"", i - 1,
 					    line + 1, sres);
 					free(sres);
 				}
 			}
 
-			ARRAY_ADD(&list_idx, wm->idx);
-			ARRAY_ADD(&list_ctx, sctx);
+			find_data.wl = wm;
+			find_data.pane_id = i;
+
+			ARRAY_ADD(&fwd, find_data);
+
 			break;
 		}
 	}
 	free(searchstr);
 
-	if (ARRAY_LENGTH(&list_idx) == 0) {
+	if (ARRAY_LENGTH(&fwd) == 0) {
 		ctx->error(ctx, "no windows matching: %s", str);
-		ARRAY_FREE(&list_idx);
-		ARRAY_FREE(&list_ctx);
+		ARRAY_FREE(&fwd);
 		return (CMD_RETURN_ERROR);
 	}
 
-	if (ARRAY_LENGTH(&list_idx) == 1) {
-		if (session_select(s, ARRAY_FIRST(&list_idx)) == 0)
+	if (ARRAY_LENGTH(&fwd) == 1) {
+		if (session_select(s, ARRAY_FIRST(&fwd).wl->idx) == 0)
 			server_redraw_session(s);
 		recalculate_sizes();
 		goto out;
@@ -169,18 +171,18 @@ cmd_find_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 	if (window_pane_set_mode(wl->window->active, &window_choose_mode) != 0)
 		goto out;
 
-	for (i = 0; i < ARRAY_LENGTH(&list_idx); i++) {
-		wm = winlink_find_by_index(
-		    &s->windows, ARRAY_ITEM(&list_idx, i));
+	for (i = 0; i < ARRAY_LENGTH(&fwd); i++) {
+		wm = ARRAY_ITEM(&fwd, i).wl;
 
 		cdata = window_choose_data_create(ctx);
 		cdata->idx = wm->idx;
 		cdata->client->references++;
+		cdata->wl = wm;
 
 		cdata->ft_template = xstrdup(template);
 		format_add(cdata->ft, "line", "%u", i);
 		format_add(cdata->ft, "window_find_matches", "%s",
-			ARRAY_ITEM(&list_ctx, i));
+			ARRAY_ITEM(&fwd, i).list_ctx);
 		format_session(cdata->ft, s);
 		format_winlink(cdata->ft, s, wm);
 
@@ -191,10 +193,7 @@ cmd_find_window_exec(struct cmd *self, struct cmd_ctx *ctx)
 	    0, cmd_find_window_callback, cmd_find_window_free);
 
 out:
-
-	ARRAY_FREE(&list_idx);
-	ARRAY_FREE(&list_ctx);
-
+	ARRAY_FREE(&fwd);
 	return (CMD_RETURN_NORMAL);
 }
 
