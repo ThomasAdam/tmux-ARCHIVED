@@ -54,6 +54,12 @@ const struct cmd_entry cmd_find_window_entry = {
 	cmd_find_window_exec
 };
 
+struct find_window_data {
+	struct winlink	*wl;
+	char		*list_ctx;
+	u_int		 pane_id;
+};
+
 u_int
 cmd_find_window_match_flags(struct args *args)
 {
