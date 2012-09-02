@@ -200,7 +200,9 @@ out:
 void
 cmd_find_window_callback(struct window_choose_data *cdata)
 {
-	struct session	*s;
+	struct session		*s;
+	struct window_pane	*wp;
+	const char		*find_pane_id;
 
 	if (cdata == NULL)
 		return;
@@ -208,6 +210,11 @@ cmd_find_window_callback(struct window_choose_data *cdata)
 	s = cdata->session;
 	if (!session_alive(s))
 		return;
+
+	find_pane_id = format_find(cdata->ft, "window_find_matches_pane");
+	wp = window_pane_at_index(cdata->wl->window, strtonum(find_pane_id, 0, INT_MAX, NULL));
+	if (wp != NULL && window_pane_visible(wp))
+		window_set_active_pane(cdata->wl->window, wp);
 
 	if (session_select(s, cdata->idx) == 0) {
 		server_redraw_session(s);
